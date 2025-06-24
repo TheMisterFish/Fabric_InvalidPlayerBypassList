@@ -3,7 +3,7 @@
 	"id": "invalidplayerbypasslist",
 	"version": "${version}",
 	"name": "InvalidPlayerBypassList",
-	"description": "InvalidPlayerBypassList allows you too allow non-valid players to be added to a bypass list allowing them to join the game even when online-mode is set too true.",
+	"description": "InvalidPlayerBypassList allows specific players - added to a configurable bypass list - to join a server even when online-mode is set to true, without passing Mojang authentication.",
 	"authors": [
 		"Me!"
 	],
@@ -24,7 +24,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.16.14",
-		"minecraft": ">=1.21.1",
+		"minecraft": "~1.21",
 		"java": ">=21",
 		"fabric-api": "*"
 	},
