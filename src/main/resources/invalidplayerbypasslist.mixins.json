@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "com.misterfish.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"ServerLoginNetworkHandlerMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
