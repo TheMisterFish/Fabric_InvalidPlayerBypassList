@@ -15,13 +15,13 @@ This mod is built for **Minecraft version 1.21** and uses the following dependen
 
 ## Versions
 
-* **Current Version (1.21)**: [Download v1.0.0-mc.1.21](https://github.com/TheMisterFish/InvalidPlayerBypassList/releases/tag/v1.0.0-mc.1.21)
+* **Current Version (1.21)**: [Download v1.0.0-mc.1.21](https://github.com/TheMisterFish/Fabric_InvalidPlayerBypassList/releases/tag/v1.0.0-mc.1.21)
 
-    * Available on Modrinth: [InvalidPlayerBypassList - Modrinth](https://modrinth.com/mod/invalidplayerbypasslist)
+    * Available on Modrinth: [InvalidPlayerBypassList - Modrinth](https://modrinth.com/mod/Fabric_InvalidPlayerBypassList)
 
 ## Download
 
-You can download this mod from the [GitHub Releases](https://github.com/TheMisterFish/InvalidPlayerBypassList/releases) or [Modrinth](https://modrinth.com/mod/invalidplayerbypasslist).
+You can download this mod from the [GitHub Releases](https://github.com/TheMisterFish/Fabric_InvalidPlayerBypassList/releases) or [Modrinth](https://modrinth.com/mod/invalidplayerbypasslist).
 
 ## Goal
 
@@ -69,7 +69,7 @@ You can manage the bypass list directly using Minecraft server commands:
 
 ## Config
 
-Configuration can be found under `/config/invalidplayerbypasslist.properties` and includes the following settings:
+Configuration can be found under `invalidplayerbypasslist.properties` and includes the following settings:
 
 | Property             | Description                                                                | Type    | Default |
 | -------------------- | -------------------------------------------------------------------------- | ------- | ------- |
@@ -89,7 +89,7 @@ This mod is ideal for:
 
 If you find a bug or want to request a feature:
 
-1. Go to the [Issues](https://github.com/TheMisterFish/InvalidPlayerBypassList/issues) tab of the repository.
+1. Go to the [Issues](https://github.com/TheMisterFish/Fabric_InvalidPlayerBypassList/issues) tab of the repository.
 2. Click **New Issue**.
 3. Use the appropriate template (Bug Report or Feature Request).
 4. Fill in all relevant details.
