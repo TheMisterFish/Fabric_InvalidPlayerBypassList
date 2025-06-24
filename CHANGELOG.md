@@ -1,5 +1,5 @@
-# OfflinePlayers-Reworked 1.0.0 (MC 1.21)
+# OfflinePlayers-Reworked 1.0.0 (MC 1.21.1)
 
 **Updates:**
 
-- Created initial mod for MC 1.21
+- Update initial mod to MC 1.21.1
