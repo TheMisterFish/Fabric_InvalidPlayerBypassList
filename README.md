@@ -1,23 +1,14 @@
 # InvalidPlayerBypassList
 
+<p align="center" width="100%">
+  <img src="https://github.com/user-attachments/assets/daa6811d-3bfd-4d34-a369-15cd1aa9226b" alt="Banner"/>
+</p>
+
 ## Installing
 
 Download or build the `.jar` file and place it in the `/mods/` folder of your **Minecraft Fabric server** directory.
 
 > ⚠️ This mod is **server-side only** and will not run on the client.
-
-## Dependencies and Compatibility
-
-This mod is built for **Minecraft version 1.21** and uses the following dependencies:
-
-* Fabric Loader `0.16.14` or higher
-* Fabric API `0.102.0+1.21` or higher
-
-## Versions
-
-* **Current Version (1.21)**: [Download v1.0.0-mc.1.21](https://github.com/TheMisterFish/Fabric_InvalidPlayerBypassList/releases/tag/v1.0.0-mc.1.21)
-
-    * Available on Modrinth: [InvalidPlayerBypassList - Modrinth](https://modrinth.com/mod/Fabric_InvalidPlayerBypassList)
 
 ## Download
 
