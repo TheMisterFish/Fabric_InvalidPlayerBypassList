@@ -3,7 +3,7 @@
 	"package": "com.misterfish.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ServerLoginNetworkHandlerMixin"
+      "ServerLoginNetworkHandlerMixin_InvalidPlayerBypassListMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

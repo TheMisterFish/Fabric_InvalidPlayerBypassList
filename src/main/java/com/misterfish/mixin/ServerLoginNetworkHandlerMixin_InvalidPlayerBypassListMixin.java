@@ -19,7 +19,7 @@ import static com.misterfish.InvalidPlayerBypassList.LOGGER;
 import static com.misterfish.InvalidPlayerBypassList.bypassList;
 
 @Mixin(ServerLoginNetworkHandler.class)
-public class ServerLoginNetworkHandlerMixin {
+public class ServerLoginNetworkHandlerMixin_InvalidPlayerBypassListMixin {
 
     @Shadow private String profileName;
     @Shadow private void startVerify(GameProfile profile) {}

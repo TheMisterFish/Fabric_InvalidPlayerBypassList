@@ -9,6 +9,7 @@ public class ModConfigs {
     private static ModConfigProvider configs;
 
     public static boolean IP_REQUIRED;
+    public static boolean ENFORCE_BYPASSLIST;
 
     public static void registerConfigs() {
         configs = new ModConfigProvider();
@@ -20,10 +21,13 @@ public class ModConfigs {
     }
 
     private static void createConfigs() {
-        configs.addKeyValuePair(new Pair<>("ipRequired", true), "If IP is required when adding a player to the invalid player bypass list.");
+        configs.addKeyValuePair(new Pair<>("ip-required", true), "If IP is required when adding a player to the invalid player bypass list.");
+        configs.addKeyValuePair(new Pair<>("enforce-bypasslist", true), "Enforce the invalid player bypass list.");
+
     }
 
     private static void assignConfigs() {
-        IP_REQUIRED = CONFIG.getOrDefault("ipRequired", true);
+        IP_REQUIRED = CONFIG.getOrDefault("ip-required", true);
+        ENFORCE_BYPASSLIST = CONFIG.getOrDefault("enforce-bypasslist", true);
     }
 }
