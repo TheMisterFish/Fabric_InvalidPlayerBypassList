@@ -30,6 +30,8 @@ public class InvalidPlayerBypassList implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			registerCommands(dispatcher);
 		});
+
+		bypassList = ModConfigs.ENFORCE_BYPASSLIST;
 	}
 
 	public static boolean isInBypassList(String playername, String ip) {
@@ -71,7 +73,7 @@ public class InvalidPlayerBypassList implements ModInitializer {
 	}
 
 	private void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
-		dispatcher.register(CommandManager.literal("bypass")
+		dispatcher.register(CommandManager.literal("bypasslist")
 				.requires(source -> source.hasPermissionLevel(2))
 
 				.then(CommandManager.literal("add")
