@@ -7,6 +7,8 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.command.permission.Permission;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -74,7 +76,9 @@ public class InvalidPlayerBypassList implements ModInitializer {
 
     private void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("bypasslist")
-                .requires(source -> source.hasPermissionLevel(2))
+                .requires(source -> source
+                    .getPermissions()
+                    .hasPermission(new Permission.Level(PermissionLevel.ADMINS))) 
 
                 .then(CommandManager.literal("add")
                         .then(CommandManager.argument("player", StringArgumentType.word())
