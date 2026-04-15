@@ -1,4 +1,4 @@
-# InvalidPlayerBypassList 1.1.0 (MC 1.21 - 1.21.10)
+# InvalidPlayerBypassList 1.1.0 (MC 1.21 - 1.21.4)
 
 - Updated gradle version
 - Updated loader version
