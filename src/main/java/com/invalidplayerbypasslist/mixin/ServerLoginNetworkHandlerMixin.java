@@ -1,6 +1,6 @@
 package com.invalidplayerbypasslist.mixin;
 
-import com.invalidplayerbypasslist.InvalidPlayerBypassList;
+import com.invalidplayerbypasslist.util.BypassListUtil;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.login.LoginHelloC2SPacket;
@@ -37,7 +37,7 @@ public class ServerLoginNetworkHandlerMixin {
         String playerName = this.profileName;
         String ip = ((InetSocketAddress) this.connection.getAddress()).getAddress().getHostAddress();
 
-        if (bypassList && InvalidPlayerBypassList.isInBypassList(playerName, ip)) {
+        if (bypassList && BypassListUtil.isInBypassList(playerName, ip)) {
             LOGGER.info("[Mixin] Player is in bypass list, using offline verification.");
             GameProfile offlineProfile = Uuids.getOfflinePlayerProfile(this.profileName);
             this.startVerify(offlineProfile);
