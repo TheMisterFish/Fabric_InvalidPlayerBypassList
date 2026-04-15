@@ -18,7 +18,7 @@ public class BypassListMiscCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist list"
         );
@@ -39,7 +39,7 @@ public class BypassListMiscCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist list"
         );
@@ -58,7 +58,7 @@ public class BypassListMiscCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist on"
         );
@@ -79,7 +79,7 @@ public class BypassListMiscCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist off"
         );
@@ -100,7 +100,7 @@ public class BypassListMiscCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist on"
         );
@@ -121,7 +121,7 @@ public class BypassListMiscCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist off"
         );
@@ -142,7 +142,7 @@ public class BypassListMiscCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(0);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist off"
         );

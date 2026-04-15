@@ -21,7 +21,7 @@ public class BypassListAddCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist add addPlayer 1.2.3.4"
         );
@@ -49,7 +49,7 @@ public class BypassListAddCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist add dupPlayer 9.9.9.9"
         );
@@ -76,7 +76,7 @@ public class BypassListAddCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist add noIpNeeded"
         );
@@ -107,7 +107,7 @@ public class BypassListAddCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist add dupNoIp"
         );
@@ -135,7 +135,7 @@ public class BypassListAddCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist add missingIp"
         );
@@ -159,7 +159,7 @@ public class BypassListAddCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(0);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist add notOp 1.2.3.4"
         );
