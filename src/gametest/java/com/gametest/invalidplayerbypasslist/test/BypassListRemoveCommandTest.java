@@ -5,16 +5,17 @@ import com.invalidplayerbypasslist.util.BypassListUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.suggestion.Suggestions;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
+import net.minecraft.text.Text;
 
 import java.util.List;
 
 public class BypassListRemoveCommandTest {
 
-    @GameTest(templateName = "fabric-gametest-api-v1:empty")
+    @GameTest
     public void testRemovePlayerAllIps(TestContext testContext) {
         BypassListUtil.addPlayer("removeAll", "1.1.1.1");
         BypassListUtil.addPlayer("removeAll", "2.2.2.2");
@@ -27,11 +28,11 @@ public class BypassListRemoveCommandTest {
                 "bypasslist remove removeAll"
         );
 
-        testContext.assertEquals(0, BypassListUtil.getIpsForPlayer("removeAll").size(), "All IPs removed");
+        testContext.assertEquals(0, BypassListUtil.getIpsForPlayer("removeAll").size(), Text.of("All IPs removed"));
         testContext.complete();
     }
 
-    @GameTest(templateName = "fabric-gametest-api-v1:empty")
+    @GameTest
     public void testRemovePlayerSpecificIp(TestContext testContext) {
         BypassListUtil.addPlayer("removeOne", "1.1.1.1");
         BypassListUtil.addPlayer("removeOne", "2.2.2.2");
@@ -45,14 +46,14 @@ public class BypassListRemoveCommandTest {
         );
 
         List<String> ips = BypassListUtil.getIpsForPlayer("removeOne");
-        testContext.assertEquals(1, ips.size(), "One IP remains");
-        testContext.assertEquals("2.2.2.2", ips.getFirst(), "Correct IP remains");
+        testContext.assertEquals(1, ips.size(), Text.of("One IP remains"));
+        testContext.assertEquals("2.2.2.2", ips.getFirst(), Text.of("Correct IP remains"));
 
         BypassListUtil.removePlayer("removeOne");
         testContext.complete();
     }
 
-    @GameTest(templateName = "fabric-gametest-api-v1:empty")
+    @GameTest
     public void testRemovePlayerNotFound(TestContext testContext) {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
@@ -62,16 +63,16 @@ public class BypassListRemoveCommandTest {
                 "bypasslist remove doesNotExist"
         );
 
-        testContext.assertFalse(BypassListUtil.getAllPlayers().contains("doesNotExist"), "Player doesn't exist");
+        testContext.assertFalse(BypassListUtil.getAllPlayers().contains("doesNotExist"), Text.of("Player doesn't exist"));
         testContext.assertTrue(
                 LogCapture.checkAndRemove("doesNotExist not found in the bypass list."),
-                "Expected log for removing non existing player"
+                Text.of("Expected log for removing non existing player")
         );
 
         testContext.complete();
     }
 
-    @GameTest(templateName = "fabric-gametest-api-v1:empty")
+    @GameTest
     public void testRemovePlayerNotFoundWithIp(TestContext testContext) {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
@@ -81,16 +82,16 @@ public class BypassListRemoveCommandTest {
                 "bypasslist remove doesNotExistWithIp 1.1.1.1"
         );
 
-        testContext.assertFalse(BypassListUtil.getAllPlayers().contains("doesNotExistWithIp"), "Player doesn't exist");
+        testContext.assertFalse(BypassListUtil.getAllPlayers().contains("doesNotExistWithIp"), Text.of("Player doesn't exist"));
         testContext.assertTrue(
                 LogCapture.checkAndRemove("doesNotExistWithIp with IP 1.1.1.1 not found in the bypass list."),
-                "Expected log for removing non existing player"
+                Text.of("Expected log for removing non existing player")
         );
 
         testContext.complete();
     }
 
-    @GameTest(templateName = "fabric-gametest-api-v1:empty")
+    @GameTest
     public void testRemovePlayerNoOp(TestContext testContext) {
         BypassListUtil.addPlayer("noOpRemove", "1.1.1.1");
 
@@ -102,12 +103,12 @@ public class BypassListRemoveCommandTest {
                 "bypasslist remove noOpRemove"
         );
 
-        testContext.assertEquals(1, BypassListUtil.getIpsForPlayer("noOpRemove").size(), "Entry not removed");
+        testContext.assertEquals(1, BypassListUtil.getIpsForPlayer("noOpRemove").size(), Text.of("Entry not removed"));
         BypassListUtil.removePlayer("noOpRemove");
         testContext.complete();
     }
 
-    @GameTest(templateName = "fabric-gametest-api-v1:empty")
+    @GameTest
     public void testRemovePlayerSuggestions(TestContext testContext) {
         BypassListUtil.addPlayer("removeAll", "1.1.1.1");
         BypassListUtil.addPlayer("removeOne", "2.2.2.2");
@@ -121,11 +122,11 @@ public class BypassListRemoveCommandTest {
 
         testContext.assertTrue(
                 suggestions.getList().stream().anyMatch(s -> s.getText().equals("removeall")),
-                "Expected suggestion: removeAll"
+                Text.of("Expected suggestion: removeAll")
         );
         testContext.assertTrue(
                 suggestions.getList().stream().anyMatch(s -> s.getText().equals("removeone")),
-                "Expected suggestion: removeOne"
+                Text.of("Expected suggestion: removeOne")
         );
 
         BypassListUtil.removePlayer("removeAll");
@@ -133,7 +134,7 @@ public class BypassListRemoveCommandTest {
         testContext.complete();
     }
 
-    @GameTest(templateName = "fabric-gametest-api-v1:empty")
+    @GameTest
     public void testRemovePlayerIpSuggestions(TestContext testContext) {
         BypassListUtil.addPlayer("removeOne", "1.1.1.1");
         BypassListUtil.addPlayer("removeOne", "1.2.3.4");
@@ -147,11 +148,11 @@ public class BypassListRemoveCommandTest {
 
         testContext.assertTrue(
                 suggestions.getList().stream().anyMatch(s -> s.getText().equals("1.1.1.1")),
-                "Expected suggestion: 1.1.1.1"
+                Text.of("Expected suggestion: 1.1.1.1")
         );
         testContext.assertTrue(
                 suggestions.getList().stream().anyMatch(s -> s.getText().equals("1.2.3.4")),
-                "Expected suggestion: 1.2.3.4"
+                Text.of("Expected suggestion: 1.2.3.4")
         );
 
         BypassListUtil.removePlayer("removeOne");
