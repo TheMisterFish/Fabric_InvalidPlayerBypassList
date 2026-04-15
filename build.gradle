@@ -3,7 +3,7 @@ plugins {
 	id 'maven-publish'
 }
 
-version = project.mod_version + "_" + project.minecraft_version
+version = project.mod_version + "_" + project.works_for_version
 group = project.maven_group
 
 base {
@@ -25,7 +25,7 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	
 }
 
@@ -52,35 +52,33 @@ java {
 }
 
 jar {
-	inputs.property "archivesName", project.base.archivesName
-
 	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}"}
+		rename { "${it}_${project.base.archivesName.get()}" }
 	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 // configure the maven publication
 publishing {
 	publications {
-		create("mavenJava", MavenPublication) {
+		mavenJava(MavenPublication) {
 			artifactId = project.archives_base_name
-			from components.java
+
+			artifact(remapJar.archiveFile) {
+				builtBy remapJar
+				classifier null
+			}
+
+			artifact(sourcesJar) {
+				builtBy remapSourcesJar
+				classifier "sources"
+			}
 		}
 	}
 
 	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+		mavenCentral()
+		maven { url = "https://api.modrinth.com/maven" }
 	}
-}
-
-tasks.register("debugServer", JavaExec) {
-	group = "fabric"
-	classpath = sourceSets.main.runtimeClasspath
-	mainClass = "net.fabricmc.installer.Main"
-	jvmArgs += "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
-	args "--server"
 }

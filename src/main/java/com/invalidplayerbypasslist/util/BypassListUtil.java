@@ -1,4 +1,4 @@
-package com.misterfish.util;
+package com.invalidplayerbypasslist.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,10 +8,13 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
-import static com.misterfish.InvalidPlayerBypassList.LOGGER;
+import static com.invalidplayerbypasslist.InvalidPlayerBypassList.LOGGER;
 
 public class BypassListUtil {
     private static final Path FILE_PATH = Path.of("invalidbypasslist.json");
