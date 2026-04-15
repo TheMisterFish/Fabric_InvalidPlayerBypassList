@@ -23,7 +23,7 @@ public class BypassListRemoveCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist remove removeAll"
         );
@@ -40,7 +40,7 @@ public class BypassListRemoveCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist remove removeOne 1.1.1.1"
         );
@@ -58,7 +58,7 @@ public class BypassListRemoveCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist remove doesNotExist"
         );
@@ -77,7 +77,7 @@ public class BypassListRemoveCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(4);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist remove doesNotExistWithIp 1.1.1.1"
         );
@@ -98,7 +98,7 @@ public class BypassListRemoveCommandTest {
         ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
                 .withLevel(0);
 
-        testContext.getWorld().getServer().getCommandManager().executeWithPrefix(
+        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist remove noOpRemove"
         );
