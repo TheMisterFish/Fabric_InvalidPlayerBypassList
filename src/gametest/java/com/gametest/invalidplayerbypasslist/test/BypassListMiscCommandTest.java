@@ -22,8 +22,10 @@ public class BypassListMiscCommandTest {
                 "bypasslist list"
         );
         testContext.assertTrue(
-                LogCapture.checkAndRemove("Bypass list entries:\n" +
-                        "- listuser (1.1.1.1)\n"),
+                LogCapture.checkAndRemove("""
+                        Bypass list entries:
+                        - listuser (1.1.1.1)
+                        """),
                 "Expected log line for getting bypass list"
         );
 
