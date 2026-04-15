@@ -4,9 +4,12 @@ import com.gametest.invalidplayerbypasslist.LogCapture;
 import com.invalidplayerbypasslist.InvalidPlayerBypassList;
 import com.invalidplayerbypasslist.util.BypassListUtil;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.command.permission.PermissionPredicate;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.test.TestContext;
 import net.minecraft.text.Text;
+
+import java.util.Objects;
 
 public class BypassListMiscCommandTest {
 
@@ -15,16 +18,19 @@ public class BypassListMiscCommandTest {
         BypassListUtil.getAllPlayers().forEach(BypassListUtil::removePlayer);
         BypassListUtil.addPlayer("listUser", "1.1.1.1");
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
                 "bypasslist list"
         );
         testContext.assertTrue(
-                LogCapture.checkAndRemove("Bypass list entries:\n" +
-                        "- listuser (1.1.1.1)\n"),
+                LogCapture.checkAndRemove("""
+                        Bypass list entries:
+                        - listuser (1.1.1.1)
+                        """),
                 Text.of("Expected log line for getting bypass list")
         );
 
@@ -36,8 +42,9 @@ public class BypassListMiscCommandTest {
     public void testListCommandWhenEmpty(TestContext testContext) {
         BypassListUtil.getAllPlayers().forEach(BypassListUtil::removePlayer);
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -55,8 +62,9 @@ public class BypassListMiscCommandTest {
     public void testToggleOn(TestContext testContext) {
         InvalidPlayerBypassList.bypassList = false;
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -76,8 +84,9 @@ public class BypassListMiscCommandTest {
     public void testToggleOff(TestContext testContext) {
         InvalidPlayerBypassList.bypassList = true;
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -97,8 +106,9 @@ public class BypassListMiscCommandTest {
     public void testToggleAlreadyOn(TestContext testContext) {
         InvalidPlayerBypassList.bypassList = true;
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -118,8 +128,9 @@ public class BypassListMiscCommandTest {
     public void testToggleAlreadyOff(TestContext testContext) {
         InvalidPlayerBypassList.bypassList = false;
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -139,8 +150,9 @@ public class BypassListMiscCommandTest {
     public void testToggleNoOp(TestContext testContext) {
         InvalidPlayerBypassList.bypassList = true;
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(0);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.NONE);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,

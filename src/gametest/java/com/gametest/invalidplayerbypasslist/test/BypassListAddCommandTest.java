@@ -4,11 +4,13 @@ import com.gametest.invalidplayerbypasslist.LogCapture;
 import com.invalidplayerbypasslist.config.ModConfigs;
 import com.invalidplayerbypasslist.util.BypassListUtil;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.command.permission.PermissionPredicate;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.test.TestContext;
 import net.minecraft.text.Text;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.invalidplayerbypasslist.util.BypassListUtil.isInBypassList;
 
@@ -18,8 +20,9 @@ public class BypassListAddCommandTest {
     public void testAddPlayerWithIp(TestContext testContext) {
         LogCapture.clear();
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -46,8 +49,9 @@ public class BypassListAddCommandTest {
 
         BypassListUtil.addPlayer("dupPlayer", "9.9.9.9");
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -73,8 +77,9 @@ public class BypassListAddCommandTest {
         boolean prev = ModConfigs.IP_REQUIRED;
         ModConfigs.IP_REQUIRED = false;
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -104,8 +109,9 @@ public class BypassListAddCommandTest {
 
         BypassListUtil.addPlayer("dupNoIp", "none");
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -132,8 +138,9 @@ public class BypassListAddCommandTest {
         boolean prev = ModConfigs.IP_REQUIRED;
         ModConfigs.IP_REQUIRED = true;
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -156,8 +163,9 @@ public class BypassListAddCommandTest {
     public void testAddPlayerButNoOp(TestContext testContext) {
         LogCapture.clear();
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(0);
+                ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.NONE);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,

@@ -6,12 +6,14 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.suggestion.Suggestions;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.command.permission.PermissionPredicate;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.test.TestContext;
 import net.minecraft.text.Text;
 
 import java.util.List;
+import java.util.Objects;
 
 public class BypassListRemoveCommandTest {
 
@@ -20,8 +22,9 @@ public class BypassListRemoveCommandTest {
         BypassListUtil.addPlayer("removeAll", "1.1.1.1");
         BypassListUtil.addPlayer("removeAll", "2.2.2.2");
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -37,8 +40,9 @@ public class BypassListRemoveCommandTest {
         BypassListUtil.addPlayer("removeOne", "1.1.1.1");
         BypassListUtil.addPlayer("removeOne", "2.2.2.2");
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -55,8 +59,9 @@ public class BypassListRemoveCommandTest {
 
     @GameTest
     public void testRemovePlayerNotFound(TestContext testContext) {
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -74,8 +79,9 @@ public class BypassListRemoveCommandTest {
 
     @GameTest
     public void testRemovePlayerNotFoundWithIp(TestContext testContext) {
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(4);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.ALL);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -95,8 +101,9 @@ public class BypassListRemoveCommandTest {
     public void testRemovePlayerNoOp(TestContext testContext) {
         BypassListUtil.addPlayer("noOpRemove", "1.1.1.1");
 
-        ServerCommandSource source = testContext.getWorld().getServer().getCommandSource()
-                .withLevel(0);
+        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
+                .getCommandSource()
+                .withPermissions(PermissionPredicate.NONE);
 
         testContext.getWorld().getServer().getCommandManager().parseAndExecute(
                 source,
@@ -114,8 +121,8 @@ public class BypassListRemoveCommandTest {
         BypassListUtil.addPlayer("removeOne", "2.2.2.2");
 
         MinecraftServer server = testContext.getWorld().getServer();
-        CommandDispatcher<ServerCommandSource> dispatcher = server.getCommandManager().getDispatcher();
-        ServerCommandSource source = server.getCommandSource().withLevel(4);
+        CommandDispatcher<ServerCommandSource> dispatcher = Objects.requireNonNull(server).getCommandManager().getDispatcher();
+        ServerCommandSource source = server.getCommandSource().withPermissions(PermissionPredicate.ALL);
 
         ParseResults<ServerCommandSource> parse = dispatcher.parse("bypasslist remove r", source);
         Suggestions suggestions = dispatcher.getCompletionSuggestions(parse).join();
@@ -140,8 +147,8 @@ public class BypassListRemoveCommandTest {
         BypassListUtil.addPlayer("removeOne", "1.2.3.4");
 
         MinecraftServer server = testContext.getWorld().getServer();
-        CommandDispatcher<ServerCommandSource> dispatcher = server.getCommandManager().getDispatcher();
-        ServerCommandSource source = server.getCommandSource().withLevel(4);
+        CommandDispatcher<ServerCommandSource> dispatcher = Objects.requireNonNull(server).getCommandManager().getDispatcher();
+        ServerCommandSource source = server.getCommandSource().withPermissions(PermissionPredicate.ALL);
 
         ParseResults<ServerCommandSource> parse = dispatcher.parse("bypasslist remove removeOne 1", source);
         Suggestions suggestions = dispatcher.getCompletionSuggestions(parse).join();
