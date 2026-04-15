@@ -1,8 +1,8 @@
-package com.misterfish.config;
+package com.invalidplayerbypasslist.config;
 
 import com.mojang.datafixers.util.Pair;
 
-import static com.misterfish.InvalidPlayerBypassList.MOD_ID;
+import static com.invalidplayerbypasslist.InvalidPlayerBypassList.MOD_ID;
 
 public class ModConfigs {
     public static SimpleConfig CONFIG;

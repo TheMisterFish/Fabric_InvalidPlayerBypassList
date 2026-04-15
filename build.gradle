@@ -1,9 +1,10 @@
 plugins {
 	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
+	id 'jacoco'
 }
 
-version = project.mod_version + "_" + project.minecraft_version
+version = project.mod_version + "_" + project.works_for_version
 group = project.maven_group
 
 base {
@@ -16,7 +17,12 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
+	maven {
+		url = "https://api.modrinth.com/maven"
+	}
 }
+
+configurations { jacocoAgent }
 
 dependencies {
 	// To change the versions see the gradle.properties file
@@ -25,8 +31,10 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Unit testing
+	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
 
 processResources {
@@ -51,36 +59,172 @@ java {
 	targetCompatibility = JavaVersion.VERSION_21
 }
 
-jar {
-	inputs.property "archivesName", project.base.archivesName
-
-	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}"}
+test {
+	useJUnitPlatform()
+	testLogging {
+		events "started", "passed", "skipped", "failed"
+		exceptionFormat "full"
+		showStandardStreams = true
 	}
+	finalizedBy jacocoTestReport
+}
+
+jacoco {
+	toolVersion = "${project.jacoco_version}"
+}
+
+def mixinExclude = '**/invalidplayerbypasslist/mixin/**'
+
+jacocoTestReport {
+	reports {
+		xml.required = false
+		csv.required = false
+		html.outputLocation = layout.buildDirectory.dir('reports/jacocoRunUnitTestHtml')
+	}
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: mixinExclude)
+		}))
+	}
+}
+
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "gametest-${project.name}"
+		eula = true
+	}
+}
+
+def runGameTestExec = file("$buildDir/jacoco/runGameTest.exec")
+def unitTestExec = file("$buildDir/jacoco/test.exec")
+
+tasks.matching { it.name == 'runGameTest' && it instanceof JavaExec }.configureEach {
+	doFirst {
+		// create a detached configuration for the agent and resolve it only now
+		def agentDep = dependencies.create("org.jacoco:org.jacoco.agent:${project.jacoco_version}:runtime@jar")
+		def agentConfig = configurations.detachedConfiguration(agentDep)
+		def agentFile = agentConfig.singleFile
+
+		if (!agentFile.exists()) {
+			throw new GradleException("JaCoCo agent not found: ${agentFile}")
+		}
+
+		jvmArgs += "-javaagent:${agentFile}=destfile=${runGameTestExec},append=false"
+		logger.lifecycle("JaCoCo agent attached to runGameTest -> ${runGameTestExec}")
+	}
+}
+
+tasks.register('jacocoRunGameTestReport', JacocoReport) {
+	group = 'verification'
+	description = 'Generates JaCoCo report for runGameTest execution'
+
+	executionData.setFrom(files(runGameTestExec))
+	def mainOutput = project.sourceSets.main.output
+
+	classDirectories.setFrom(files(mainOutput.classesDirs.files.collect { dir ->
+		fileTree(dir: dir, exclude: mixinExclude)
+	}))
+
+	sourceDirectories.setFrom(project.sourceSets.main.allSource.srcDirs)
+
+	reports {
+		html.required.set(true)
+		xml.required.set(false)
+		csv.required.set(false)
+		html.outputLocation.set(layout.buildDirectory.dir('reports/jacocoRunGameTestHtml'))
+	}
+}
+
+tasks.register('runGameTestWithCoverage') {
+	group = 'verification'
+	description = 'Runs runGameTest with JaCoCo agent and generates coverage report'
+	dependsOn 'runGameTest'
+	finalizedBy 'jacocoRunGameTestReport'
+}
+
+tasks.register('jacocoCombinedReport', JacocoReport) {
+	group = 'verification'
+	description = 'Combine JaCoCo exec files from unit tests and gametests and generate a single report.'
+
+	// only include exec files that actually exist to avoid errors
+	def execFiles = files(unitTestExec, runGameTestExec).filter { it.exists() }
+	executionData.setFrom(execFiles)
+
+	def mainOutput = project.sourceSets.main.output
+	classDirectories.setFrom(files(mainOutput.classesDirs.files.collect { dir ->
+		fileTree(dir: dir, exclude: '**/offlineplayersreworked/mixin/**')
+	}))
+	sourceDirectories.setFrom(project.sourceSets.main.allSource.srcDirs)
+
+	reports {
+		html.required.set(true)
+		xml.required.set(false)
+		csv.required.set(false)
+		html.outputLocation.set(layout.buildDirectory.dir('reports/jacocoCombinedHtml'))
+	}
+}
+
+tasks.register('runAllTests') {
+	group = 'verification'
+	description = 'Run unit tests and gametests.'
+	dependsOn 'clean', 'test', 'runGameTest'
+}
+
+tasks.register('runAllTestsWithCoverage') {
+	group = 'verification'
+	description = 'Run unit tests and gametests.'
+	dependsOn 'clean', 'test', 'runGameTestWithCoverage'
+	finalizedBy 'jacocoCombinedReport'
+}
+
+// Only run GameTest when running below tasks;
+// We skip the build as GameTest are quite flaky.
+tasks.named('runGameTest') {
+	onlyIf {
+		gradle.startParameter.taskNames.any {
+			it == 'runGameTest' ||
+					it.endsWith(':runGameTest') ||
+					it == 'runAllTestsWithCoverage' ||
+					it.endsWith(':runAllTestsWithCoverage') ||
+					it == 'runGameTestWithCoverage' ||
+					it.endsWith(':runGameTestWithCoverage') ||
+					it == 'runAllTests' ||
+					it.endsWith(':runAllTests')
+		}
+	}
+}
+
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 // configure the maven publication
 publishing {
 	publications {
-		create("mavenJava", MavenPublication) {
+		mavenJava(MavenPublication) {
 			artifactId = project.archives_base_name
-			from components.java
+
+			artifact(remapJar.archiveFile) {
+				builtBy remapJar
+				classifier null
+			}
+
+			artifact(sourcesJar) {
+				builtBy remapSourcesJar
+				classifier "sources"
+			}
 		}
 	}
 
 	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+		mavenCentral()
+		maven { url = "https://api.modrinth.com/maven" }
 	}
-}
-
-tasks.register("debugServer", JavaExec) {
-	group = "fabric"
-	classpath = sourceSets.main.runtimeClasspath
-	mainClass = "net.fabricmc.installer.Main"
-	jvmArgs += "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
-	args "--server"
 }

@@ -1,11 +1,10 @@
-package com.misterfish;
+package com.invalidplayerbypasslist;
 
-import com.misterfish.config.ModConfigs;
-import com.misterfish.util.BypassListUtil;
+import com.invalidplayerbypasslist.config.ModConfigs;
+import com.invalidplayerbypasslist.util.BypassListUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.permission.Permission;
 import net.minecraft.command.permission.PermissionLevel;
@@ -15,7 +14,7 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.List;
 
 public class InvalidPlayerBypassList implements ModInitializer {
     public static final String MOD_ID = "invalidPlayerBypassList";
@@ -36,49 +35,11 @@ public class InvalidPlayerBypassList implements ModInitializer {
         bypassList = ModConfigs.ENFORCE_BYPASSLIST;
     }
 
-    public static boolean isInBypassList(String playername, String ip) {
-        List<String> ipsForPlayer = BypassListUtil.getIpsForPlayer(playername);
-        if (ipsForPlayer.isEmpty()) {
-            return false;
-        }
-
-        if (ModConfigs.IP_REQUIRED) {
-            if (ip.equalsIgnoreCase("none")) return false;
-
-            for (String storedIp : ipsForPlayer) {
-                if (storedIp.equalsIgnoreCase(ip)) {
-                    return true;
-                }
-            }
-            return false;
-        } else {
-            boolean hasNone = false;
-            for (String storedIp : ipsForPlayer) {
-                if (storedIp.equalsIgnoreCase("none")) {
-                    hasNone = true;
-                    break;
-                }
-            }
-
-            if (hasNone) {
-                return true;
-            }
-
-            for (String storedIp : ipsForPlayer) {
-                if (storedIp.equalsIgnoreCase(ip)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
-
     private void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("bypasslist")
                 .requires(source -> source
-                    .getPermissions()
-                    .hasPermission(new Permission.Level(PermissionLevel.ADMINS))) 
+                        .getPermissions()
+                        .hasPermission(new Permission.Level(PermissionLevel.ADMINS)))
 
                 .then(CommandManager.literal("add")
                         .then(CommandManager.argument("player", StringArgumentType.word())

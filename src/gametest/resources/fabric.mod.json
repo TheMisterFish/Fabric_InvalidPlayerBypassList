@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "gametest-invalidplayerbypasslist",
+  "version": "1.0.0",
+  "name": "Fabric docs reference",
+  "environment": "*",
+  "entrypoints": {
+    "preLaunch": [
+      "com.gametest.invalidplayerbypasslist.GameTestPreLaunch"
+    ],
+    "fabric-gametest": [
+      "com.gametest.invalidplayerbypasslist.test.BypassListAddCommandTest",
+      "com.gametest.invalidplayerbypasslist.test.BypassListRemoveCommandTest",
+      "com.gametest.invalidplayerbypasslist.test.BypassListMiscCommandTest"
+    ]
+  },
+  "mixins": [
+    "gametest-invalidplayerbypasslist.mixins.json"
+  ]
+}
