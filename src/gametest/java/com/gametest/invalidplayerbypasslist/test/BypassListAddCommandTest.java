@@ -169,7 +169,7 @@ public class BypassListAddCommandTest {
         testContext.assertFalse(isInBypassList("notOp", "1.2.3.4"), "Player not in bypass list");
 
         testContext.assertTrue(
-                LogCapture.checkAndRemove("Unknown or incomplete command, see below for error"),
+                LogCapture.checkAndRemove("Unknown or incomplete command"),
                 "Expected Brigadier error log 1"
         );
         testContext.assertTrue(

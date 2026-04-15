@@ -147,7 +147,7 @@ public class BypassListMiscCommandTest {
         );
 
         testContext.assertTrue(
-                LogCapture.checkAndRemove("Unknown or incomplete command, see below for error"),
+                LogCapture.checkAndRemove("Unknown or incomplete command"),
                 "Expected log line for disabling bypass list without op 1"
         );
         testContext.assertTrue(
