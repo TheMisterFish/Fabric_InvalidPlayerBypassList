@@ -1,4 +1,4 @@
-package com.misterfish.config;
+package com.invalidplayerbypasslist.config;
 
 /*
  * Copyright (c) 2021 magistermaks
@@ -42,9 +42,9 @@ public class SimpleConfig {
     private boolean broken = false;
 
     public interface DefaultConfig {
-        String get( String namespace );
+        String get(String namespace);
 
-        static String empty( String namespace ) {
+        static String empty(String namespace) {
             return "";
         }
     }
@@ -55,7 +55,7 @@ public class SimpleConfig {
         private final String filename;
         private DefaultConfig provider;
 
-        private ConfigRequest(File file, String filename ) {
+        private ConfigRequest(File file, String filename) {
             this.file = file;
             this.filename = filename;
             this.provider = DefaultConfig::empty;
@@ -69,7 +69,7 @@ public class SimpleConfig {
          * @return current config request object
          * @see DefaultConfig
          */
-        public ConfigRequest provider( DefaultConfig provider ) {
+        public ConfigRequest provider(DefaultConfig provider) {
             this.provider = provider;
             return this;
         }
@@ -81,11 +81,11 @@ public class SimpleConfig {
          * @see SimpleConfig
          */
         public SimpleConfig request() {
-            return new SimpleConfig( this );
+            return new SimpleConfig(this);
         }
 
         private String getConfig() {
-            return provider.get( filename ) + "\n";
+            return provider.get(filename) + "\n";
         }
 
     }
@@ -97,66 +97,66 @@ public class SimpleConfig {
      * @param filename - name of the config file
      * @return new config request object
      */
-    public static ConfigRequest of( String filename ) {
+    public static ConfigRequest of(String filename) {
         Path path = FabricLoader.getInstance().getConfigDir();
-        return new ConfigRequest( path.resolve( filename + ".properties" ).toFile(), filename );
+        return new ConfigRequest(path.resolve(filename + ".properties").toFile(), filename);
     }
 
     private void createConfig() throws IOException {
 
         // try creating missing files
         request.file.getParentFile().mkdirs();
-        Files.createFile( request.file.toPath() );
+        Files.createFile(request.file.toPath());
 
         // write default config data
         PrintWriter writer = new PrintWriter(request.file, "UTF-8");
-        writer.write( request.getConfig() );
+        writer.write(request.getConfig());
         writer.close();
 
     }
 
     private void loadConfig() throws IOException {
-        Scanner reader = new Scanner( request.file );
-        for( int line = 1; reader.hasNextLine(); line ++ ) {
-            parseConfigEntry( reader.nextLine(), line );
+        Scanner reader = new Scanner(request.file);
+        for (int line = 1; reader.hasNextLine(); line++) {
+            parseConfigEntry(reader.nextLine(), line);
         }
     }
 
-    private void parseConfigEntry( String entry, int line ) {
-        if( !entry.isEmpty() && !entry.startsWith( "#" ) ) {
+    private void parseConfigEntry(String entry, int line) {
+        if (!entry.isEmpty() && !entry.startsWith("#")) {
             String[] parts = entry.split("=", 2);
-            if( parts.length == 2 ) {
+            if (parts.length == 2) {
                 // Recognizes comments after a value
                 String temp = parts[1].split("#")[0];
-                config.put( parts[0], temp.strip() );
-            }else{
+                config.put(parts[0], temp.strip());
+            } else {
                 throw new RuntimeException("Syntax error in config file on line " + line + "!");
             }
         }
     }
 
-    private SimpleConfig( ConfigRequest request ) {
+    private SimpleConfig(ConfigRequest request) {
         this.request = request;
         String identifier = "Config '" + request.filename + "'";
 
-        if( !request.file.exists() ) {
-            LOGGER.info( identifier + " is missing, generating default one..." );
+        if (!request.file.exists()) {
+            LOGGER.info(identifier + " is missing, generating default one...");
 
             try {
                 createConfig();
             } catch (IOException e) {
-                LOGGER.error( identifier + " failed to generate!" );
-                LOGGER.trace( e );
+                LOGGER.error(identifier + " failed to generate!");
+                LOGGER.trace(e);
                 broken = true;
             }
         }
 
-        if( !broken ) {
+        if (!broken) {
             try {
                 loadConfig();
             } catch (Exception e) {
-                LOGGER.error( identifier + " failed to load!" );
-                LOGGER.trace( e );
+                LOGGER.error(identifier + " failed to load!");
+                LOGGER.trace(e);
                 broken = true;
             }
         }
@@ -167,21 +167,20 @@ public class SimpleConfig {
      * Queries a value from config, returns `null` if the
      * key does not exist.
      *
-     * @return  value corresponding to the given key
-     * @see     SimpleConfig#getOrDefault
+     * @return value corresponding to the given key
+     * @see SimpleConfig#getOrDefault
      */
-    @Deprecated
-    public String get( String key ) {
-        return config.get( key );
+    public String get(String key) {
+        return config.get(key);
     }
 
     /**
      * Returns string value from config corresponding to the given
      * key, or the default string if the key is missing.
      *
-     * @return  value corresponding to the given key, or the default value
+     * @return value corresponding to the given key, or the default value
      */
-    public String getOrDefault( String key, String def ) {
+    public String getOrDefault(String key, String def) {
         String val = get(key);
         return val == null ? def : val;
     }
@@ -190,11 +189,11 @@ public class SimpleConfig {
      * Returns integer value from config corresponding to the given
      * key, or the default integer if the key is missing or invalid.
      *
-     * @return  value corresponding to the given key, or the default value
+     * @return value corresponding to the given key, or the default value
      */
-    public int getOrDefault( String key, int def ) {
+    public int getOrDefault(String key, int def) {
         try {
-            return Integer.parseInt( get(key) );
+            return Integer.parseInt(get(key));
         } catch (Exception e) {
             return def;
         }
@@ -204,11 +203,11 @@ public class SimpleConfig {
      * Returns boolean value from config corresponding to the given
      * key, or the default boolean if the key is missing.
      *
-     * @return  value corresponding to the given key, or the default value
+     * @return value corresponding to the given key, or the default value
      */
-    public boolean getOrDefault( String key, boolean def ) {
+    public boolean getOrDefault(String key, boolean def) {
         String val = get(key);
-        if( val != null ) {
+        if (val != null) {
             return val.equalsIgnoreCase("true");
         }
 
@@ -219,11 +218,11 @@ public class SimpleConfig {
      * Returns double value from config corresponding to the given
      * key, or the default string if the key is missing or invalid.
      *
-     * @return  value corresponding to the given key, or the default value
+     * @return value corresponding to the given key, or the default value
      */
-    public double getOrDefault( String key, double def ) {
+    public double getOrDefault(String key, double def) {
         try {
-            return Double.parseDouble( get(key) );
+            return Double.parseDouble(get(key));
         } catch (Exception e) {
             return def;
         }
@@ -246,7 +245,7 @@ public class SimpleConfig {
      * @return true if the operation was successful
      */
     public boolean delete() {
-        LOGGER.warn( "Config '" + request.filename + "' was removed from existence! Restart the game to regenerate it." );
+        LOGGER.warn("Config '" + request.filename + "' was removed from existence! Restart the game to regenerate it.");
         return request.file.delete();
     }
 
