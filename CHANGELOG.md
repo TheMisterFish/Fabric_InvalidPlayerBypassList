@@ -1,11 +1,7 @@
-# OfflinePlayers-Reworked 1.0.0 (MC 1.21)
+# InvalidPlayerBypassList 1.1.0 (MC 1.21 - 1.21.10)
 
-  This mod is built for **Minecraft version 1.21** and uses the following dependencies:
-
-* Fabric Loader `0.16.14` or higher
-* Fabric API `0.102.0+1.21` or higher
-
-
-  **Updates:**
-
-- Initial mod
+- Updated gradle version
+- Updated loader version
+- Made mod less restrictive
+- Optimized imports
+- Minor code changes & formatting

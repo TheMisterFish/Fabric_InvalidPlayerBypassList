@@ -1,11 +1,10 @@
-package com.misterfish;
+package com.invalidplayerbypasslist;
 
-import com.misterfish.config.ModConfigs;
-import com.misterfish.util.BypassListUtil;
+import com.invalidplayerbypasslist.config.ModConfigs;
+import com.invalidplayerbypasslist.util.BypassListUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -13,7 +12,7 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.List;
 
 public class InvalidPlayerBypassList implements ModInitializer {
     public static final String MOD_ID = "invalidPlayerBypassList";

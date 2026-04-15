@@ -1,6 +1,6 @@
-package com.misterfish.mixin;
+package com.invalidplayerbypasslist.mixin;
 
-import com.misterfish.InvalidPlayerBypassList;
+import com.invalidplayerbypasslist.InvalidPlayerBypassList;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.login.LoginHelloC2SPacket;
@@ -15,18 +15,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.net.InetSocketAddress;
 
-import static com.misterfish.InvalidPlayerBypassList.LOGGER;
-import static com.misterfish.InvalidPlayerBypassList.bypassList;
+import static com.invalidplayerbypasslist.InvalidPlayerBypassList.LOGGER;
+import static com.invalidplayerbypasslist.InvalidPlayerBypassList.bypassList;
 
 @Mixin(ServerLoginNetworkHandler.class)
-public class ServerLoginNetworkHandlerMixin_InvalidPlayerBypassListMixin {
+public class ServerLoginNetworkHandlerMixin {
 
-    @Shadow private String profileName;
-    @Shadow private void startVerify(GameProfile profile) {}
-    @Shadow @Final public ClientConnection connection;
+    @Shadow
+    String profileName;
 
-    @Inject(method = "onHello", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/server/MinecraftServer;isOnlineMode()Z"), cancellable = true)
+    @Shadow
+    void startVerify(GameProfile profile) {
+    }
+
+    @Shadow
+    @Final
+    ClientConnection connection;
+
+    @Inject(method = "onHello", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;isOnlineMode()Z"), cancellable = true)
     private void injectCustomCheck(LoginHelloC2SPacket packet, CallbackInfo ci) {
         String playerName = this.profileName;
         String ip = ((InetSocketAddress) this.connection.getAddress()).getAddress().getHostAddress();
