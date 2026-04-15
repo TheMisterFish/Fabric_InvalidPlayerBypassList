@@ -3,6 +3,7 @@ package com.invalidplayerbypasslist.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.invalidplayerbypasslist.config.ModConfigs;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -61,6 +62,24 @@ public class BypassListUtil {
             GSON.toJson(bypasslistCache, writer);
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Checks if a player is in the bypass list.
+     * Returns true if the player is found.
+     */
+    public static boolean isInBypassList(String playername, String ip) {
+        List<String> ipsForPlayer = getIpsForPlayer(playername);
+        if (ipsForPlayer.isEmpty()) return false;
+
+        if (ModConfigs.IP_REQUIRED) {
+            if (ip.equalsIgnoreCase("none")) return false;
+            return ipsForPlayer.stream().anyMatch(stored -> stored.equalsIgnoreCase(ip));
+        } else {
+            boolean hasNone = ipsForPlayer.stream().anyMatch(stored -> stored.equalsIgnoreCase("none"));
+            if (hasNone) return true;
+            return ipsForPlayer.stream().anyMatch(stored -> stored.equalsIgnoreCase(ip));
         }
     }
 
