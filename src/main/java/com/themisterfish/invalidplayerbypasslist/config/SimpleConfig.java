@@ -1,4 +1,4 @@
-package com.invalidplayerbypasslist.config;
+package com.themisterfish.invalidplayerbypasslist.config;
 
 /*
  * Copyright (c) 2021 magistermaks

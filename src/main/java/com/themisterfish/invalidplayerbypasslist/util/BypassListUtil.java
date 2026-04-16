@@ -1,9 +1,9 @@
-package com.invalidplayerbypasslist.util;
+package com.themisterfish.invalidplayerbypasslist.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.invalidplayerbypasslist.config.ModConfigs;
+import com.themisterfish.invalidplayerbypasslist.config.ModConfigs;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import static com.invalidplayerbypasslist.InvalidPlayerBypassList.LOGGER;
+import static com.themisterfish.invalidplayerbypasslist.InvalidPlayerBypassList.LOGGER;
 
 public class BypassListUtil {
     private static final Path FILE_PATH = Path.of("invalidbypasslist.json");

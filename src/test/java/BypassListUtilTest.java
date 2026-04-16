@@ -1,4 +1,4 @@
-import com.invalidplayerbypasslist.util.BypassListUtil;
+import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

@@ -1,174 +1,156 @@
 package com.gametest.invalidplayerbypasslist.test;
 
 import com.gametest.invalidplayerbypasslist.LogCapture;
-import com.invalidplayerbypasslist.InvalidPlayerBypassList;
-import com.invalidplayerbypasslist.util.BypassListUtil;
+import com.themisterfish.invalidplayerbypasslist.InvalidPlayerBypassList;
+import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
-import net.minecraft.command.permission.PermissionPredicate;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.test.TestContext;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.permissions.PermissionSet;
 
 import java.util.Objects;
 
 public class BypassListMiscCommandTest {
 
+    private CommandSourceStack opSource(MinecraftServer server) {
+        return server.createCommandSourceStack().withPermission(PermissionSet.ALL_PERMISSIONS);
+    }
+
+    private CommandSourceStack noPermSource(MinecraftServer server) {
+        return server.createCommandSourceStack().withPermission(PermissionSet.NO_PERMISSIONS);
+    }
+
     @GameTest
-    public void testListCommand(TestContext testContext) {
+    public void testListCommand(GameTestHelper helper) {
         BypassListUtil.getAllPlayers().forEach(BypassListUtil::removePlayer);
         BypassListUtil.addPlayer("listUser", "1.1.1.1");
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist list"
-        );
-        testContext.assertTrue(
+        server.getCommands().performPrefixedCommand(source, "bypasslist list");
+
+        helper.assertTrue(
                 LogCapture.checkAndRemove("""
                         Bypass list entries:
                         - listuser (1.1.1.1)
                         """),
-                Text.of("Expected log line for getting bypass list")
+                "Expected log line for getting bypass list"
         );
 
         BypassListUtil.removePlayer("listUser");
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testListCommandWhenEmpty(TestContext testContext) {
+    public void testListCommandWhenEmpty(GameTestHelper helper) {
         BypassListUtil.getAllPlayers().forEach(BypassListUtil::removePlayer);
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist list"
-        );
-        testContext.assertTrue(
+        server.getCommands().performPrefixedCommand(source, "bypasslist list");
+
+        helper.assertTrue(
                 LogCapture.checkAndRemove("The bypass list is empty."),
-                Text.of("Expected log line for getting bypass list")
+                "Expected log line for empty bypass list"
         );
 
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testToggleOn(TestContext testContext) {
+    public void testToggleOn(GameTestHelper helper) {
         InvalidPlayerBypassList.bypassList = false;
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist on"
-        );
+        server.getCommands().performPrefixedCommand(source, "bypasslist on");
 
-        testContext.assertTrue(InvalidPlayerBypassList.bypassList, Text.of("Bypass list enabled"));
-        testContext.assertTrue(
+        helper.assertTrue(InvalidPlayerBypassList.bypassList, "Bypass list enabled");
+        helper.assertTrue(
                 LogCapture.checkAndRemove("Bypasslist is now turned on"),
-                Text.of("Expected log line for enabling bypass list")
+                "Expected log line for enabling bypass list"
         );
 
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testToggleOff(TestContext testContext) {
+    public void testToggleOff(GameTestHelper helper) {
         InvalidPlayerBypassList.bypassList = true;
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist off"
-        );
+        server.getCommands().performPrefixedCommand(source, "bypasslist off");
 
-        testContext.assertFalse(InvalidPlayerBypassList.bypassList, Text.of("Bypass list disabled"));
-        testContext.assertTrue(
+        helper.assertTrue(!InvalidPlayerBypassList.bypassList, "Bypass list disabled");
+        helper.assertTrue(
                 LogCapture.checkAndRemove("Bypasslist is now turned off"),
-                Text.of("Expected log line for disabling bypass list")
+                "Expected log line for disabling bypass list"
         );
 
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testToggleAlreadyOn(TestContext testContext) {
+    public void testToggleAlreadyOn(GameTestHelper helper) {
         InvalidPlayerBypassList.bypassList = true;
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist on"
-        );
+        server.getCommands().performPrefixedCommand(source, "bypasslist on");
 
-        testContext.assertTrue(InvalidPlayerBypassList.bypassList, Text.of("Bypass list enabled"));
-        testContext.assertTrue(
+        helper.assertTrue(InvalidPlayerBypassList.bypassList, "Bypass list enabled");
+        helper.assertTrue(
                 LogCapture.checkAndRemove("Bypass list is already enabled."),
-                Text.of("Expected log line for enabling bypass list")
+                "Expected log line for enabling bypass list"
         );
 
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testToggleAlreadyOff(TestContext testContext) {
+    public void testToggleAlreadyOff(GameTestHelper helper) {
         InvalidPlayerBypassList.bypassList = false;
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist off"
-        );
+        server.getCommands().performPrefixedCommand(source, "bypasslist off");
 
-        testContext.assertFalse(InvalidPlayerBypassList.bypassList, Text.of("Bypass list disabled"));
-        testContext.assertTrue(
+        helper.assertTrue(!InvalidPlayerBypassList.bypassList, "Bypass list disabled");
+        helper.assertTrue(
                 LogCapture.checkAndRemove("Bypass list is already disabled."),
-                Text.of("Expected log line for disabling bypass list")
+                "Expected log line for disabling bypass list"
         );
 
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testToggleNoOp(TestContext testContext) {
+    public void testToggleNoOp(GameTestHelper helper) {
         InvalidPlayerBypassList.bypassList = true;
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.NONE);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = noPermSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist off"
-        );
+        server.getCommands().performPrefixedCommand(source, "bypasslist off");
 
-        testContext.assertTrue(
+        helper.assertTrue(
                 LogCapture.checkAndRemove("Unknown or incomplete command"),
-                Text.of("Expected log line for disabling bypass list without op 1")
+                "Expected Brigadier parse error log 1"
         );
-        testContext.assertTrue(
+        helper.assertTrue(
                 LogCapture.checkAndRemove("bypasslist off<--[HERE]"),
-                Text.of("Expected log line for disabling bypass list without op 2")
+                "Expected Brigadier parse error log 2"
         );
 
-        testContext.assertTrue(InvalidPlayerBypassList.bypassList, Text.of("Non‑OP cannot toggle"));
-        testContext.complete();
+        helper.assertTrue(InvalidPlayerBypassList.bypassList, "Non‑OP cannot toggle");
+        helper.succeed();
     }
 }

@@ -1,4 +1,4 @@
-package com.invalidplayerbypasslist.config;
+package com.themisterfish.invalidplayerbypasslist.config;
 
 import com.mojang.datafixers.util.Pair;
 

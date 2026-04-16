@@ -1,6 +1,6 @@
 package com.gametest.invalidplayerbypasslist;
 
-import com.invalidplayerbypasslist.util.BypassListUtil;
+import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import org.slf4j.Logger;

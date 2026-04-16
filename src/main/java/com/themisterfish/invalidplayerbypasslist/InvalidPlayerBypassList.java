@@ -1,20 +1,23 @@
-package com.invalidplayerbypasslist;
+package com.themisterfish.invalidplayerbypasslist;
 
-import com.invalidplayerbypasslist.config.ModConfigs;
-import com.invalidplayerbypasslist.util.BypassListUtil;
+import com.themisterfish.invalidplayerbypasslist.config.ModConfigs;
+import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.permission.Permission;
-import net.minecraft.command.permission.PermissionLevel;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.server.permissions.Permissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
+
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class InvalidPlayerBypassList implements ModInitializer {
     public static final String MOD_ID = "invalidPlayerBypassList";
@@ -28,46 +31,46 @@ public class InvalidPlayerBypassList implements ModInitializer {
 
         LOGGER.info("InvalidPlayerBypassList initialized.");
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+        CommandRegistrationCallback.EVENT.register((dispatcher, commandRegistryAccess, dedicated) -> {
             registerCommands(dispatcher);
         });
 
         bypassList = ModConfigs.ENFORCE_BYPASSLIST;
     }
 
-    private void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("bypasslist")
-                .requires(source -> source
-                        .getPermissions()
-                        .hasPermission(new Permission.Level(PermissionLevel.ADMINS)))
+    private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(literal("bypasslist")
+                .requires(source -> Objects.requireNonNull(source.getPlayer())
+                        .permissions()
+                        .hasPermission(Permissions.COMMANDS_ADMIN))
 
-                .then(CommandManager.literal("add")
-                        .then(CommandManager.argument("player", StringArgumentType.word())
+                .then(literal("add")
+                        .then(argument("player", StringArgumentType.word())
                                 .executes(ctx -> {
                                     if (ModConfigs.IP_REQUIRED) {
-                                        ctx.getSource().sendFeedback(() -> Text.literal("IP is required, please provide one."), false);
+                                        ctx.getSource().sendFailure(Component.literal("IP is required, please provide one."));
                                         return 0;
                                     }
                                     String player = StringArgumentType.getString(ctx, "player");
                                     boolean added = BypassListUtil.addPlayer(player, "none");
                                     if (added) {
-                                        ctx.getSource().sendFeedback(() -> Text.literal("Added " + player + " to the bypass list."), false);
-                                        LOGGER.info("[{}: Added {} with no IP to the bypasslist]", ctx.getSource().getName(), player);
+                                        ctx.getSource().sendSuccess(() -> Component.literal("Added " + player + " to the bypass list."), false);
+                                        LOGGER.info("[{}: Added {} with no IP to the bypasslist]", ctx.getSource().getDisplayName(), player);
                                     } else {
-                                        ctx.getSource().sendFeedback(() -> Text.literal(player + " with IP none is already on the bypass list.").styled(style -> style.withColor(0xFF5555)), false);
+                                        ctx.getSource().sendFailure(Component.literal(player + " with IP none is already on the bypass list.").withColor(0xFF5555));
                                     }
                                     return 1;
                                 })
-                                .then(CommandManager.argument("ip", StringArgumentType.word())
+                                .then(argument("ip", StringArgumentType.word())
                                         .executes(ctx -> {
                                             String player = StringArgumentType.getString(ctx, "player");
                                             String ip = StringArgumentType.getString(ctx, "ip");
                                             boolean added = BypassListUtil.addPlayer(player, ip);
                                             if (added) {
-                                                ctx.getSource().sendFeedback(() -> Text.literal("Added " + player + " with IP " + ip + " to the bypass list."), false);
-                                                LOGGER.info("[{}: Added {} with IP {} to the bypasslist]", ctx.getSource().getName(), player, ip);
+                                                ctx.getSource().sendSuccess(() -> Component.literal("Added " + player + " with IP " + ip + " to the bypass list."), false);
+                                                LOGGER.info("[{}: Added {} with IP {} to the bypasslist]", ctx.getSource().getDisplayName(), player, ip);
                                             } else {
-                                                ctx.getSource().sendFeedback(() -> Text.literal(player + " with IP " + ip + " is already on the bypass list.").styled(style -> style.withColor(0xFF5555)), false);
+                                                ctx.getSource().sendFailure(Component.literal(player + " with IP " + ip + " is already on the bypass list.").withColor(0xFF5555));
                                             }
                                             return 1;
                                         })
@@ -75,8 +78,8 @@ public class InvalidPlayerBypassList implements ModInitializer {
                         )
                 )
 
-                .then(CommandManager.literal("remove")
-                        .then(CommandManager.argument("player", StringArgumentType.word())
+                .then(literal("remove")
+                        .then(argument("player", StringArgumentType.word())
                                 .suggests((ctx, builder) -> {
                                     for (String player : BypassListUtil.getAllPlayers()) {
                                         builder.suggest(player);
@@ -88,16 +91,16 @@ public class InvalidPlayerBypassList implements ModInitializer {
                                     String player = StringArgumentType.getString(ctx, "player");
                                     boolean removed = BypassListUtil.removePlayer(player);
                                     if (removed) {
-                                        ctx.getSource().sendFeedback(() -> Text.literal("Removed all entries for " + player + " from the bypass list."), false);
-                                        LOGGER.info("[{}: Removed all entries for {} from the bypasslist]", ctx.getSource().getName(), player);
+                                        ctx.getSource().sendSuccess(() -> Component.literal("Removed all entries for " + player + " from the bypass list."), false);
+                                        LOGGER.info("[{}: Removed all entries for {} from the bypasslist]", ctx.getSource().getDisplayName(), player);
 
                                     } else {
-                                        ctx.getSource().sendFeedback(() -> Text.literal(player + " not found in the bypass list."), false);
+                                        ctx.getSource().sendFailure(Component.literal(player + " not found in the bypass list."));
                                     }
                                     return 1;
                                 })
 
-                                .then(CommandManager.argument("ip", StringArgumentType.word())
+                                .then(argument("ip", StringArgumentType.word())
                                         .suggests((ctx, builder) -> {
                                             String player = StringArgumentType.getString(ctx, "player");
                                             for (String ip : BypassListUtil.getIpsForPlayer(player)) {
@@ -111,10 +114,10 @@ public class InvalidPlayerBypassList implements ModInitializer {
                                             String ip = StringArgumentType.getString(ctx, "ip");
                                             boolean removed = BypassListUtil.removePlayer(player, ip);
                                             if (removed) {
-                                                ctx.getSource().sendFeedback(() -> Text.literal("Removed " + player + " with IP " + ip + " from the bypass list."), false);
-                                                LOGGER.info("[{}: Removed {} with IP {} from the bypasslist]", ctx.getSource().getName(), player, ip);
+                                                ctx.getSource().sendSuccess(() -> Component.literal("Removed " + player + " with IP " + ip + " from the bypass list."), false);
+                                                LOGGER.info("[{}: Removed {} with IP {} from the bypasslist]", ctx.getSource().getDisplayName(), player, ip);
                                             } else {
-                                                ctx.getSource().sendFeedback(() -> Text.literal(player + " with IP " + ip + " not found in the bypass list."), false);
+                                                ctx.getSource().sendFailure(Component.literal(player + " with IP " + ip + " not found in the bypass list."));
                                             }
                                             return 1;
                                         })
@@ -122,11 +125,11 @@ public class InvalidPlayerBypassList implements ModInitializer {
                         )
                 )
 
-                .then(CommandManager.literal("list")
+                .then(literal("list")
                         .executes(ctx -> {
                             List<String> players = BypassListUtil.getAllPlayers();
                             if (players.isEmpty()) {
-                                ctx.getSource().sendFeedback(() -> Text.literal("The bypass list is empty."), false);
+                                ctx.getSource().sendSuccess(() -> Component.literal("The bypass list is empty."), false);
                             } else {
                                 StringBuilder list = new StringBuilder("Bypass list entries:\n");
                                 for (String player : players) {
@@ -137,40 +140,35 @@ public class InvalidPlayerBypassList implements ModInitializer {
                                     }
                                     list.append("\n");
                                 }
-                                ctx.getSource().sendFeedback(() -> Text.literal(list.toString()), false);
+                                ctx.getSource().sendSuccess(() -> Component.literal(list.toString()), false);
                             }
                             return players.size();
                         })
                 )
 
-                .then(CommandManager.literal("on")
+                .then(literal("on")
                         .executes(ctx -> {
                             if (bypassList) {
-                                ctx.getSource().sendFeedback(() ->
-                                        Text.literal("Bypass list is already enabled.")
-                                                .styled(style -> style.withColor(0xFF5555)), false);
+                                ctx.getSource().sendFailure(Component.literal("Bypass list is already enabled.").withColor(0xFF5555));
                                 return 0;
                             }
                             bypassList = true;
-                            ctx.getSource().sendFeedback(() ->
-                                    Text.literal("Invalid player bypass list enabled."), false);
-                            LOGGER.info("[{}: Bypasslist is now turned on]", ctx.getSource().getName());
+                            ctx.getSource().sendSuccess(() ->
+                                    Component.literal("Invalid player bypass list enabled."), false);
+                            LOGGER.info("[{}: Bypasslist is now turned on]", ctx.getSource().getDisplayName());
                             return 1;
                         })
                 )
 
-                .then(CommandManager.literal("off")
+                .then(literal("off")
                         .executes(ctx -> {
                             if (!bypassList) {
-                                ctx.getSource().sendFeedback(() ->
-                                        Text.literal("Bypass list is already disabled.")
-                                                .styled(style -> style.withColor(0xFF5555)), false);
+                                ctx.getSource().sendFailure(Component.literal("Bypass list is already disabled.").withColor(0xFF5555));
                                 return 0;
                             }
                             bypassList = false;
-                            ctx.getSource().sendFeedback(() ->
-                                    Text.literal("Invalid player bypass list disabled."), false);
-                            LOGGER.info("[{}: Bypasslist is now turned off]", ctx.getSource().getName());
+                            ctx.getSource().sendSuccess(() -> Component.literal("Invalid player bypass list disabled."), false);
+                            LOGGER.info("[{}: Bypasslist is now turned off]", ctx.getSource().getDisplayName());
                             return 1;
                         })
                 )

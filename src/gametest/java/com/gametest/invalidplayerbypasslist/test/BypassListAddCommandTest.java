@@ -1,107 +1,115 @@
 package com.gametest.invalidplayerbypasslist.test;
 
 import com.gametest.invalidplayerbypasslist.LogCapture;
-import com.invalidplayerbypasslist.config.ModConfigs;
-import com.invalidplayerbypasslist.util.BypassListUtil;
+import com.gametest.invalidplayerbypasslist.TestPlayerBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.themisterfish.invalidplayerbypasslist.config.ModConfigs;
+import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
-import net.minecraft.command.permission.PermissionPredicate;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.test.TestContext;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.permissions.PermissionSet;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Objects;
 
-import static com.invalidplayerbypasslist.util.BypassListUtil.isInBypassList;
+import static com.themisterfish.invalidplayerbypasslist.util.BypassListUtil.isInBypassList;
 
 public class BypassListAddCommandTest {
 
-    @GameTest
-    public void testAddPlayerWithIp(TestContext testContext) {
-        LogCapture.clear();
+    private CommandSourceStack opSource(MinecraftServer server) {
+        FakePlayer fakePlayer = new TestPlayerBuilder().buildFakePlayer(server);
+        server.getPlayerList().op(fakePlayer.nameAndId());
+        return fakePlayer.createCommandSourceStack();
+    }
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
-
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist add addPlayer 1.2.3.4"
-        );
-
-        List<String> ips = BypassListUtil.getIpsForPlayer("addPlayer");
-        testContext.assertEquals(1, ips.size(), Text.of("Correct IP count"));
-        testContext.assertEquals("1.2.3.4", ips.getFirst(), Text.of("Correct IP stored"));
-        testContext.assertTrue(isInBypassList("addPlayer", "1.2.3.4"), Text.of("Player is in bypass list"));
-
-        testContext.assertTrue(
-                LogCapture.checkAndRemove("Added addPlayer with IP 1.2.3.4"),
-                Text.of("Expected log for adding player with IP")
-        );
-
-        BypassListUtil.removePlayer("addPlayer");
-        testContext.complete();
+    private CommandSourceStack noPermSource(MinecraftServer server) {
+        return new TestPlayerBuilder().buildFakePlayer(server).createCommandSourceStack();
     }
 
     @GameTest
-    public void testAddPlayerWithIpDuplicate(TestContext testContext) {
+    public void testAddPlayerWithIp(GameTestHelper helper) throws CommandSyntaxException {
+        LogCapture.clear();
+
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
+
+        server.getCommands().getDispatcher().execute("bypasslist add addPlayer 1.2.3.4", source);
+
+        List<String> ips = BypassListUtil.getIpsForPlayer("addPlayer");
+        helper.assertTrue(ips.size() == 1, "Correct IP count");
+        helper.assertTrue("1.2.3.4".equals(ips.getFirst()), "Correct IP stored");
+        helper.assertTrue(isInBypassList("addPlayer", "1.2.3.4"), "Player is in bypass list");
+
+        helper.assertTrue(
+                LogCapture.checkAndRemove("Added addPlayer with IP 1.2.3.4"),
+                "Expected log for adding player with IP"
+        );
+
+        BypassListUtil.removePlayer("addPlayer");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void testAddPlayerWithIpDuplicate(GameTestHelper helper) throws CommandSyntaxException {
         LogCapture.clear();
 
         BypassListUtil.addPlayer("dupPlayer", "9.9.9.9");
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist add dupPlayer 9.9.9.9"
-        );
+        server.getCommands().getDispatcher().execute("bypasslist add dupPlayer 9.9.9.9", source);
 
         List<String> ips = BypassListUtil.getIpsForPlayer("dupPlayer");
-        testContext.assertEquals(1, ips.size(), Text.of("Duplicate should not add new entry"));
+        helper.assertTrue(ips.size() == 1, "Duplicate should not add new entry");
 
-        testContext.assertTrue(
+        helper.assertTrue(
                 LogCapture.checkAndRemove("dupPlayer with IP 9.9.9.9 is already on the bypass list."),
-                Text.of("Duplicate log")
+                "Duplicate log"
         );
 
         BypassListUtil.removePlayer("dupPlayer");
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testAddPlayerWithoutIp(TestContext testContext) {
+    public void testAddPlayerWithoutIp(GameTestHelper helper) throws CommandSyntaxException {
         LogCapture.clear();
 
         boolean prev = ModConfigs.IP_REQUIRED;
         ModConfigs.IP_REQUIRED = false;
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist add noIpNeeded"
-        );
+        server.getCommands().getDispatcher().execute("bypasslist add noIpNeeded", source);
 
         List<String> ips = BypassListUtil.getIpsForPlayer("noIpNeeded");
-        testContext.assertEquals(1, ips.size(), Text.of("Correct IP count"));
-        testContext.assertEquals("none", ips.getFirst(), Text.of("Stored IP should be 'none'"));
+        helper.assertTrue(ips.size() == 1, "Correct IP count");
+        helper.assertTrue("none".equals(ips.getFirst()), "Stored IP should be 'none'");
 
-        testContext.assertTrue(
+        helper.assertTrue(
                 LogCapture.checkAndRemove("Added noIpNeeded with no IP"),
-                Text.of("Expected log for adding player without IP")
+                "Expected log for adding player without IP"
         );
 
         ModConfigs.IP_REQUIRED = prev;
         BypassListUtil.removePlayer("noIpNeeded");
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testAddPlayerWithoutIpDuplicate(TestContext testContext) {
+    public void testAddPlayerWithoutIpDuplicate(GameTestHelper helper) throws CommandSyntaxException {
         LogCapture.clear();
 
         boolean prev = ModConfigs.IP_REQUIRED;
@@ -109,83 +117,70 @@ public class BypassListAddCommandTest {
 
         BypassListUtil.addPlayer("dupNoIp", "none");
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist add dupNoIp"
-        );
+        server.getCommands().getDispatcher().execute("bypasslist add dupNoIp", source);
 
         List<String> ips = BypassListUtil.getIpsForPlayer("dupNoIp");
-        testContext.assertEquals(1, ips.size(), Text.of("Duplicate should not add new entry"));
+        helper.assertTrue(ips.size() == 1, "Duplicate should not add new entry");
 
-        testContext.assertTrue(
+        helper.assertTrue(
                 LogCapture.checkAndRemove("dupNoIp with IP none is already on the bypass list."),
-                Text.of("Duplicate log")
+                "Duplicate log"
         );
 
         ModConfigs.IP_REQUIRED = prev;
         BypassListUtil.removePlayer("dupNoIp");
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testAddPlayerIpRequiredButMissing(TestContext testContext) {
+    public void testAddPlayerIpRequiredButMissing(GameTestHelper helper) throws CommandSyntaxException {
         LogCapture.clear();
 
         boolean prev = ModConfigs.IP_REQUIRED;
         ModConfigs.IP_REQUIRED = true;
 
-        ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.ALL);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = opSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist add missingIp"
-        );
+        server.getCommands().getDispatcher().execute("bypasslist add missingIp", source);
 
         List<String> ips = BypassListUtil.getIpsForPlayer("missingIp");
-        testContext.assertEquals(0, ips.size(), Text.of("No entry should be added"));
+        helper.assertTrue(ips.isEmpty(), "No entry should be added");
 
-        testContext.assertTrue(
+        helper.assertTrue(
                 LogCapture.checkAndRemove("IP is required, please provide one."),
-                Text.of("IP missing log")
+                "IP missing log"
         );
 
         ModConfigs.IP_REQUIRED = prev;
-        testContext.complete();
+        helper.succeed();
     }
 
     @GameTest
-    public void testAddPlayerButNoOp(TestContext testContext) {
+    public void testAddPlayerButNoOp(GameTestHelper helper) throws CommandSyntaxException {
         LogCapture.clear();
 
-                ServerCommandSource source = Objects.requireNonNull(testContext.getWorld().getServer())
-                .getCommandSource()
-                .withPermissions(PermissionPredicate.NONE);
+        MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
+        CommandSourceStack source = noPermSource(server);
 
-        testContext.getWorld().getServer().getCommandManager().parseAndExecute(
-                source,
-                "bypasslist add notOp 1.2.3.4"
-        );
+        server.getCommands().getDispatcher().execute("bypasslist add notOp 1.2.3.4", source);
 
         List<String> ips = BypassListUtil.getIpsForPlayer("notOp");
-        testContext.assertEquals(0, ips.size(), Text.of("Non-OP cannot add"));
+        helper.assertTrue(ips.isEmpty(), "Non-OP cannot add");
+        helper.assertTrue(!isInBypassList("notOp", "1.2.3.4"), "Player not in bypass list");
 
-        testContext.assertFalse(isInBypassList("notOp", "1.2.3.4"), Text.of("Player not in bypass list"));
-
-        testContext.assertTrue(
+        helper.assertTrue(
                 LogCapture.checkAndRemove("Unknown or incomplete command"),
-                Text.of("Expected Brigadier error log 1")
+                "Expected Brigadier error log 1"
         );
-        testContext.assertTrue(
+        helper.assertTrue(
                 LogCapture.checkAndRemove("bypasslist add notOp 1.2.3.4<--[HERE]"),
-                Text.of("Expected Brigadier error log 2")
+                "Expected Brigadier error log 2"
         );
 
-        testContext.complete();
+        helper.succeed();
     }
 }

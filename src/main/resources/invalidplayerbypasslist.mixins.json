@@ -1,9 +1,9 @@
 {
   "required": true,
-  "package": "com.invalidplayerbypasslist.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "package": "com.themisterfish.invalidplayerbypasslist.mixin",
+  "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "ServerLoginNetworkHandlerMixin"
+    "LoginPacketListenerImplMixin"
   ],
   "injectors": {
     "defaultRequire": 1
