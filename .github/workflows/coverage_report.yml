@@ -56,9 +56,9 @@ jobs:
           git clone https://github.com/${{ github.repository }}.wiki.git wiki
 
       - name: Write Markdown page
-        run: |
-          mkdir -p wiki/coverage
-          cat <<EOF > wiki/coverage/combined.md
+  run: |
+    mkdir -p wiki/coverage
+    cat <<'EOF' > wiki/coverage/combined.md
 # Combined Coverage Report
 
 **Branch:** ${{ steps.meta.outputs.branch }}  
