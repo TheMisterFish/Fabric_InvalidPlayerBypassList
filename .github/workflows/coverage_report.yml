@@ -46,10 +46,12 @@ jobs:
         id: jacoco
         uses: PavanMudigonda/jacoco-reporter@v5.0
         with:
-          report_paths: build/reports/jacocoCombinedHtml/index.html
+          coverage_results_path: build/reports/jacocoCombinedHtml/jacoco.xml
           coverage_report_title: "Combined Coverage Report"
           skip_check_run: true
-          min_coverage: 0
+          minimum_coverage: 0
+          fail_below_threshold: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write coverage markdown to file
         env:
