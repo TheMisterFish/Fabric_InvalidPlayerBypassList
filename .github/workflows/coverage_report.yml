@@ -1,7 +1,10 @@
 name: Coverage Report
 on: [ workflow_dispatch ]
+
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   coverage:
@@ -42,19 +45,26 @@ jobs:
           echo "mc_version=$MC_VERSION" >> $GITHUB_OUTPUT
           echo "page_name=JaCoCo-report-Mc-version-${MC_VERSION}-$(date -u +"%Y-%m-%d")" >> $GITHUB_OUTPUT
 
+      # -----------------------------
+      # DEPLOY HTML REPORT TO GITHUB PAGES
+      # -----------------------------
+      - name: Upload JaCoCo HTML artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/reports/jacoco/test/html
+
+      - name: Deploy to GitHub Pages
+        id: pages
+        uses: actions/deploy-pages@v4
+
+      # -----------------------------
+      # UPDATE WIKI WITH LINK TO PAGES
+      # -----------------------------
       - name: Prepare wiki repo
         run: |
           git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki
 
-      - name: Copy JaCoCo HTML report into wiki
-        run: |
-          PAGE_NAME="${{ steps.meta.outputs.page_name }}"
-          REPORT_DIR="build/reports/jacocoCombinedHtml"
-
-          mkdir -p "wiki/${PAGE_NAME}"
-          cp -r "${REPORT_DIR}/"* "wiki/${PAGE_NAME}/"
-
-      - name: Create index page linking to HTML report
+      - name: Create wiki page linking to GitHub Pages report
         run: |
           PAGE_NAME="${{ steps.meta.outputs.page_name }}"
           BRANCH="${{ steps.meta.outputs.branch }}"
@@ -62,6 +72,8 @@ jobs:
           TIMESTAMP="${{ steps.meta.outputs.timestamp }}"
           JAVA="${{ steps.meta.outputs.java }}"
           MC_VERSION="${{ steps.meta.outputs.mc_version }}"
+
+          REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/index.html"
 
           cat > "wiki/${PAGE_NAME}.md" <<EOF
           # JaCoCo Coverage Report
@@ -74,9 +86,9 @@ jobs:
           
           ---
           
-          ## Full HTML Report
+          ## Full HTML Report (GitHub Pages)
           
-          [Open JaCoCo HTML Report](./${PAGE_NAME}/index.html)
+          [Open JaCoCo HTML Report](${REPORT_URL})
           
           EOF
 
@@ -88,7 +100,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git add "${PAGE_NAME}" "${PAGE_NAME}.md"
+          git add "${PAGE_NAME}.md"
           git diff --cached --quiet && echo "No changes to commit" && exit 0
 
           git commit -m "Coverage report: Mc ${{ steps.meta.outputs.mc_version }} @ ${{ steps.meta.outputs.date }}"
