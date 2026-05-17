@@ -6,6 +6,7 @@ permissions:
 jobs:
   coverage:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -27,7 +28,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle.properties') }}
 
       - name: Run all tests with coverage
-        run: ./gradlew runAllTestsWithCoverage --stacktrace
+        run: ./gradlew runAllTestsWithCoverage jacocoTestReport --stacktrace
 
       - name: Extract metadata
         id: meta
@@ -37,61 +38,58 @@ jobs:
           echo "date=$(date -u +"%Y-%m-%d")" >> $GITHUB_OUTPUT
           echo "timestamp=$(date -u +"%Y-%m-%d %H:%M UTC")" >> $GITHUB_OUTPUT
           echo "java=$(java -version 2>&1 | head -n 1)" >> $GITHUB_OUTPUT
-          MC_VERSION=$(grep '^minecraft_version' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          MC_VERSION=$(grep '^works_for_version' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
           echo "mc_version=$MC_VERSION" >> $GITHUB_OUTPUT
-          # Derive the wiki page filename from mc version + date
           echo "page_name=JaCoCo-report-Mc-version-${MC_VERSION}-$(date -u +"%Y-%m-%d")" >> $GITHUB_OUTPUT
-
-      - name: Convert JaCoCo XML → Markdown summary
-        id: jacoco
-        uses: PavanMudigonda/jacoco-reporter@v5.0
-        with:
-          coverage_results_path: build/reports/jacoco/jacocoCombinedReport/jacocoCombinedReport.xml
-          coverage_report_title: "Combined Coverage Report"
-          skip_check_run: true
-          minimum_coverage: 0
-          fail_below_threshold: false
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Write coverage markdown to file
-        env:
-          JACOCO_MARKDOWN: ${{ steps.jacoco.outputs.markdown }}
-          BRANCH: ${{ steps.meta.outputs.branch }}
-          COMMIT: ${{ steps.meta.outputs.commit }}
-          TIMESTAMP: ${{ steps.meta.outputs.timestamp }}
-          JAVA: ${{ steps.meta.outputs.java }}
-          MC_VERSION: ${{ steps.meta.outputs.mc_version }}
-        run: |
-          cat > /tmp/coverage_page.md << ENDOFFILE
-          # Combined Coverage Report
-
-          **Branch:** ${BRANCH}
-          **Commit:** ${COMMIT}
-          **Tested at:** ${TIMESTAMP}
-          **Java:** ${JAVA}
-          **Minecraft:** ${MC_VERSION}
-
-          ---
-
-          ## Summary
-
-          ${JACOCO_MARKDOWN}
-          ENDOFFILE
 
       - name: Prepare wiki repo
         run: |
           git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki
 
-      - name: Publish page to wiki
+      - name: Copy JaCoCo HTML report into wiki
         run: |
           PAGE_NAME="${{ steps.meta.outputs.page_name }}"
-          mkdir -p wiki
-          cp /tmp/coverage_page.md "wiki/${PAGE_NAME}.md"
+          REPORT_DIR="build/reports/jacoco/test/html"
+
+          mkdir -p "wiki/${PAGE_NAME}"
+          cp -r "${REPORT_DIR}/"* "wiki/${PAGE_NAME}/"
+
+      - name: Create index page linking to HTML report
+        run: |
+          PAGE_NAME="${{ steps.meta.outputs.page_name }}"
+          BRANCH="${{ steps.meta.outputs.branch }}"
+          COMMIT="${{ steps.meta.outputs.commit }}"
+          TIMESTAMP="${{ steps.meta.outputs.timestamp }}"
+          JAVA="${{ steps.meta.outputs.java }}"
+          MC_VERSION="${{ steps.meta.outputs.mc_version }}"
+
+          cat > "wiki/${PAGE_NAME}.md" <<EOF
+          # JaCoCo Coverage Report
+          
+          **Branch:** ${BRANCH}  
+          **Commit:** ${COMMIT}  
+          **Tested at:** ${TIMESTAMP}  
+          **Java:** ${JAVA}  
+          **Minecraft:** ${MC_VERSION}
+          
+          ---
+          
+          ## Full HTML Report
+          
+          [Open JaCoCo HTML Report](./${PAGE_NAME}/index.html)
+          
+          EOF
+
+      - name: Commit & push wiki changes
+        run: |
+          PAGE_NAME="${{ steps.meta.outputs.page_name }}"
 
           cd wiki
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add "${PAGE_NAME}.md"
+
+          git add "${PAGE_NAME}" "${PAGE_NAME}.md"
           git diff --cached --quiet && echo "No changes to commit" && exit 0
+
           git commit -m "Coverage report: Mc ${{ steps.meta.outputs.mc_version }} @ ${{ steps.meta.outputs.date }}"
           git push
