@@ -1,14 +1,11 @@
 name: Coverage Report
-
 on: [ workflow_dispatch ]
-
 permissions:
   contents: write
-  
+
 jobs:
   coverage:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -37,56 +34,62 @@ jobs:
         run: |
           echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
           echo "commit=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "date=$(date -u +"%Y-%m-%d")" >> $GITHUB_OUTPUT
           echo "timestamp=$(date -u +"%Y-%m-%d %H:%M UTC")" >> $GITHUB_OUTPUT
           echo "java=$(java -version 2>&1 | head -n 1)" >> $GITHUB_OUTPUT
-          echo "mc_version=$(grep minecraft_version gradle.properties | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+          MC_VERSION=$(grep '^minecraft_version' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          echo "mc_version=$MC_VERSION" >> $GITHUB_OUTPUT
+          # Derive the wiki page filename from mc version + date
+          echo "page_name=JaCoCo-report-Mc-version-${MC_VERSION}-$(date -u +"%Y-%m-%d")" >> $GITHUB_OUTPUT
 
       - name: Convert JaCoCo HTML → Markdown summary
         id: jacoco
         uses: PavanMudigonda/jacoco-reporter@v5.0
         with:
-          report_paths: |
-            build/reports/jacocoCombinedHtml/index.html
+          report_paths: build/reports/jacocoCombinedHtml/index.html
           coverage_report_title: "Combined Coverage Report"
           skip_check_run: true
           min_coverage: 0
 
+      - name: Write coverage markdown to file
+        env:
+          JACOCO_MARKDOWN: ${{ steps.jacoco.outputs.markdown }}
+          BRANCH: ${{ steps.meta.outputs.branch }}
+          COMMIT: ${{ steps.meta.outputs.commit }}
+          TIMESTAMP: ${{ steps.meta.outputs.timestamp }}
+          JAVA: ${{ steps.meta.outputs.java }}
+          MC_VERSION: ${{ steps.meta.outputs.mc_version }}
+        run: |
+          cat > /tmp/coverage_page.md << ENDOFFILE
+          # Combined Coverage Report
+
+          **Branch:** ${BRANCH}
+          **Commit:** ${COMMIT}
+          **Tested at:** ${TIMESTAMP}
+          **Java:** ${JAVA}
+          **Minecraft:** ${MC_VERSION}
+
+          ---
+
+          ## Summary
+
+          ${JACOCO_MARKDOWN}
+          ENDOFFILE
+
       - name: Prepare wiki repo
         run: |
-          git clone https://github.com/${{ github.repository }}.wiki.git wiki
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki
 
-      - name: Write Markdown page
+      - name: Publish page to wiki
         run: |
-          mkdir -p wiki/coverage
-          cat <<'EOF' > wiki/coverage/combined.md
-# Combined Coverage Report
+          PAGE_NAME="${{ steps.meta.outputs.page_name }}"
+          mkdir -p wiki
+          cp /tmp/coverage_page.md "wiki/${PAGE_NAME}.md"
 
-**Branch:** ${{ steps.meta.outputs.branch }}  
-**Commit:** ${{ steps.meta.outputs.commit }}  
-**Tested at:** ${{ steps.meta.outputs.timestamp }}  
-**Java:** ${{ steps.meta.outputs.java }}  
-**Minecraft:** ${{ steps.meta.outputs.mc_version }}
-
----
-
-## Summary
-
-${{ steps.jacoco.outputs.markdown }}
-
----
-
-## Full HTML Report
-
-Hosted on GitHub Pages:  
-https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage/combined/
-
-EOF
-
-      - name: Commit & push to wiki
-        run: |
           cd wiki
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add .
-          git commit -m "Update coverage report for ${{ steps.meta.outputs.branch }} @ ${{ steps.meta.outputs.commit }}"
+          git add "${PAGE_NAME}.md"
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "Coverage report: Mc ${{ steps.meta.outputs.mc_version }} @ ${{ steps.meta.outputs.date }}"
           git push
