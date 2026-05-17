@@ -105,17 +105,17 @@ jobs:
           [Open JaCoCo HTML Report](${REPORT_URL})
           
           EOF
-          
-                - name: Commit & push wiki changes
-                  run: |
-                    PAGE_NAME="${{ needs.build.outputs.page_name }}"
-          
-                    cd wiki
-                    git config user.name "github-actions"
-                    git config user.email "github-actions@github.com"
-          
-                    git add "${PAGE_NAME}.md"
-                    git diff --cached --quiet && echo "No changes to commit" && exit 0
-          
-                    git commit -m "Coverage report: Mc ${{ needs.build.outputs.mc_version }} @ ${{ needs.build.outputs.timestamp }}"
-                    git push
+
+      - name: Commit & push wiki changes
+        run: |
+          PAGE_NAME="${{ needs.build.outputs.page_name }}"
+
+          cd wiki
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add "${PAGE_NAME}.md"
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "Coverage report: Mc ${{ needs.build.outputs.mc_version }} @ ${{ needs.build.outputs.timestamp }}"
+          git push
