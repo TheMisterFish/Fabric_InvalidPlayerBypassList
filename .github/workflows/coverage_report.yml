@@ -53,13 +53,8 @@ jobs:
           JAVA=$(java -version 2>&1 | head -n 1)
           MC_VERSION=$(grep '^works_for_version' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
 
-          # Folder name for GitHub Pages
           FOLDER_NAME="${MC_VERSION}-${DATE_DOTS}"
-
-          # Wiki page filename
           WIKI_PAGE="JaCoCo-report-Mc-version-${MC_VERSION}-${DATE_DOTS}"
-
-          # Wiki page title
           WIKI_TITLE="JaCoCo report Mc version ${MC_VERSION} - ${DATE_DOTS}"
 
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
@@ -111,3 +106,36 @@ jobs:
           COMMIT="${{ needs.build.outputs.commit }}"
           TIMESTAMP="${{ needs.build.outputs.timestamp }}"
           JAVA="${{ needs.build.outputs.java }}"
+          MC_VERSION="${{ needs.build.outputs.mc_version }}"
+          FOLDER="${{ needs.build.outputs.folder_name }}"
+
+          REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${FOLDER}/index.html"
+
+          cat > "wiki/${PAGE}.md" <<EOF
+          # ${TITLE}
+          
+          **Branch:** ${BRANCH}  
+          **Commit:** ${COMMIT}  
+          **Tested at:** ${TIMESTAMP}  
+          **Java:** ${JAVA}  
+          **Minecraft:** ${MC_VERSION}
+          
+          ---
+          
+          ## Full HTML Report (GitHub Pages)
+          
+          [Open JaCoCo HTML Report](${REPORT_URL})
+          
+          EOF
+
+      - name: Commit & push wiki changes
+        run: |
+          PAGE="${{ needs.build.outputs.wiki_page }}"
+
+          cd wiki
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add "${PAGE}.md"
+          git commit -m "Coverage report: ${PAGE}" || echo "Nothing to commit"
+          git push || echo "Nothing to push"
