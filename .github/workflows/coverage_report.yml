@@ -49,7 +49,7 @@ jobs:
       - name: Copy JaCoCo HTML report into wiki
         run: |
           PAGE_NAME="${{ steps.meta.outputs.page_name }}"
-          REPORT_DIR="build/reports/jacoco/test/html"
+          REPORT_DIR="build/reports/jacocoCombinedHtml"
 
           mkdir -p "wiki/${PAGE_NAME}"
           cp -r "${REPORT_DIR}/"* "wiki/${PAGE_NAME}/"
