@@ -76,7 +76,7 @@ def mixinExclude = '**/invalidplayerbypasslist/mixin/**'
 
 jacocoTestReport {
 	reports {
-		xml.required = false
+		xml.required = true
 		csv.required = false
 		html.outputLocation = layout.buildDirectory.dir('reports/jacocoRunUnitTestHtml')
 	}
@@ -130,7 +130,7 @@ tasks.register('jacocoRunGameTestReport', JacocoReport) {
 
 	reports {
 		html.required.set(true)
-		xml.required.set(false)
+		xml.required.set(true)
 		csv.required.set(false)
 		html.outputLocation.set(layout.buildDirectory.dir('reports/jacocoRunGameTestHtml'))
 	}
@@ -159,7 +159,7 @@ tasks.register('jacocoCombinedReport', JacocoReport) {
 
 	reports {
 		html.required.set(true)
-		xml.required.set(false)
+		xml.required.set(true)
 		csv.required.set(false)
 		html.outputLocation.set(layout.buildDirectory.dir('reports/jacocoCombinedHtml'))
 	}
