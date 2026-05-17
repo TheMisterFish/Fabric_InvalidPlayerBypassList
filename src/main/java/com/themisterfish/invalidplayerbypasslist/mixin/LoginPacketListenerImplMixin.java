@@ -1,11 +1,10 @@
 package com.themisterfish.invalidplayerbypasslist.mixin;
 
-import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import com.mojang.authlib.GameProfile;
+import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.login.ServerboundHelloPacket;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
-import net.minecraft.util.Crypt;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

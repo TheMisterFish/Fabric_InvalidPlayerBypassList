@@ -1,20 +1,18 @@
 package com.themisterfish.invalidplayerbypasslist;
 
-import com.themisterfish.invalidplayerbypasslist.config.ModConfigs;
-import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.themisterfish.invalidplayerbypasslist.config.ModConfigs;
+import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.server.permissions.Permissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Objects;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -38,7 +36,7 @@ public class InvalidPlayerBypassList implements ModInitializer {
         bypassList = ModConfigs.ENFORCE_BYPASSLIST;
     }
 
-    public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+    private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("bypasslist")
                 .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_ADMIN))
                 .then(literal("add")

@@ -1,11 +1,10 @@
 package com.gametest.invalidplayerbypasslist.test;
 
 import com.gametest.invalidplayerbypasslist.LogCapture;
-import com.themisterfish.invalidplayerbypasslist.InvalidPlayerBypassList;
-import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.suggestion.Suggestions;
+import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -130,7 +129,6 @@ public class BypassListRemoveCommandTest {
 
         MinecraftServer server = testContext.getLevel().getServer();
         CommandDispatcher<CommandSourceStack> dispatcher = server.getCommands().getDispatcher();
-        InvalidPlayerBypassList.registerCommands(dispatcher);
         CommandSourceStack source = opSource(server);
 
         ParseResults<CommandSourceStack> parse = dispatcher.parse("bypasslist remove r", source);
@@ -158,7 +156,6 @@ public class BypassListRemoveCommandTest {
 
         MinecraftServer server = testContext.getLevel().getServer();
         CommandDispatcher<CommandSourceStack> dispatcher = server.getCommands().getDispatcher();
-        InvalidPlayerBypassList.registerCommands(dispatcher);
         CommandSourceStack source = opSource(server);
 
         ParseResults<CommandSourceStack> parse = dispatcher.parse("bypasslist remove removeOne 1", source);

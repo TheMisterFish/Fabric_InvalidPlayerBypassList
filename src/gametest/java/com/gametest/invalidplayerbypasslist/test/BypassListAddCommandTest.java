@@ -1,7 +1,6 @@
 package com.gametest.invalidplayerbypasslist.test;
 
 import com.gametest.invalidplayerbypasslist.LogCapture;
-import com.themisterfish.invalidplayerbypasslist.InvalidPlayerBypassList;
 import com.themisterfish.invalidplayerbypasslist.config.ModConfigs;
 import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
