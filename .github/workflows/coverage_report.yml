@@ -112,7 +112,6 @@ jobs:
           REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${FOLDER}/index.html"
 
           cat > "wiki/${PAGE}.md" <<EOF
-          # ${TITLE}
           
           **Branch:** ${BRANCH}  
           **Commit:** ${COMMIT}  
