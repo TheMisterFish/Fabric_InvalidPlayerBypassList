@@ -1,23 +1,14 @@
 package com.gametest.invalidplayerbypasslist.test;
 
 import com.gametest.invalidplayerbypasslist.LogCapture;
-import com.gametest.invalidplayerbypasslist.TestPlayerBuilder;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.themisterfish.invalidplayerbypasslist.InvalidPlayerBypassList;
 import com.themisterfish.invalidplayerbypasslist.config.ModConfigs;
 import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
-import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
-import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.permissions.PermissionSet;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec2;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Objects;
@@ -27,23 +18,23 @@ import static com.themisterfish.invalidplayerbypasslist.util.BypassListUtil.isIn
 public class BypassListAddCommandTest {
 
     private CommandSourceStack opSource(MinecraftServer server) {
-        FakePlayer fakePlayer = new TestPlayerBuilder().buildFakePlayer(server);
-        server.getPlayerList().op(fakePlayer.nameAndId());
-        return fakePlayer.createCommandSourceStack();
+        return server.createCommandSourceStack().withPermission(PermissionSet.ALL_PERMISSIONS);
     }
 
     private CommandSourceStack noPermSource(MinecraftServer server) {
-        return new TestPlayerBuilder().buildFakePlayer(server).createCommandSourceStack();
+        return server.createCommandSourceStack().withPermission(PermissionSet.NO_PERMISSIONS);
     }
 
     @GameTest
-    public void testAddPlayerWithIp(GameTestHelper helper) throws CommandSyntaxException {
+    public void testAddPlayerWithIp(GameTestHelper helper) {
         LogCapture.clear();
 
         MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
-        CommandSourceStack source = opSource(server);
 
-        server.getCommands().getDispatcher().execute("bypasslist add addPlayer 1.2.3.4", source);
+        server.getCommands().performPrefixedCommand(
+                opSource(server),
+                "bypasslist add addPlayer 1.2.3.4"
+        );
 
         List<String> ips = BypassListUtil.getIpsForPlayer("addPlayer");
         helper.assertTrue(ips.size() == 1, "Correct IP count");
@@ -60,15 +51,17 @@ public class BypassListAddCommandTest {
     }
 
     @GameTest
-    public void testAddPlayerWithIpDuplicate(GameTestHelper helper) throws CommandSyntaxException {
+    public void testAddPlayerWithIpDuplicate(GameTestHelper helper) {
         LogCapture.clear();
 
         BypassListUtil.addPlayer("dupPlayer", "9.9.9.9");
 
         MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
-        CommandSourceStack source = opSource(server);
 
-        server.getCommands().getDispatcher().execute("bypasslist add dupPlayer 9.9.9.9", source);
+        server.getCommands().performPrefixedCommand(
+                opSource(server),
+                "bypasslist add dupPlayer 9.9.9.9"
+        );
 
         List<String> ips = BypassListUtil.getIpsForPlayer("dupPlayer");
         helper.assertTrue(ips.size() == 1, "Duplicate should not add new entry");
@@ -83,16 +76,18 @@ public class BypassListAddCommandTest {
     }
 
     @GameTest
-    public void testAddPlayerWithoutIp(GameTestHelper helper) throws CommandSyntaxException {
+    public void testAddPlayerWithoutIp(GameTestHelper helper) {
         LogCapture.clear();
 
         boolean prev = ModConfigs.IP_REQUIRED;
         ModConfigs.IP_REQUIRED = false;
 
         MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
-        CommandSourceStack source = opSource(server);
 
-        server.getCommands().getDispatcher().execute("bypasslist add noIpNeeded", source);
+        server.getCommands().performPrefixedCommand(
+                opSource(server),
+                "bypasslist add noIpNeeded"
+        );
 
         List<String> ips = BypassListUtil.getIpsForPlayer("noIpNeeded");
         helper.assertTrue(ips.size() == 1, "Correct IP count");
@@ -109,7 +104,7 @@ public class BypassListAddCommandTest {
     }
 
     @GameTest
-    public void testAddPlayerWithoutIpDuplicate(GameTestHelper helper) throws CommandSyntaxException {
+    public void testAddPlayerWithoutIpDuplicate(GameTestHelper helper) {
         LogCapture.clear();
 
         boolean prev = ModConfigs.IP_REQUIRED;
@@ -118,9 +113,11 @@ public class BypassListAddCommandTest {
         BypassListUtil.addPlayer("dupNoIp", "none");
 
         MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
-        CommandSourceStack source = opSource(server);
 
-        server.getCommands().getDispatcher().execute("bypasslist add dupNoIp", source);
+        server.getCommands().performPrefixedCommand(
+                opSource(server),
+                "bypasslist add dupNoIp"
+        );
 
         List<String> ips = BypassListUtil.getIpsForPlayer("dupNoIp");
         helper.assertTrue(ips.size() == 1, "Duplicate should not add new entry");
@@ -136,16 +133,18 @@ public class BypassListAddCommandTest {
     }
 
     @GameTest
-    public void testAddPlayerIpRequiredButMissing(GameTestHelper helper) throws CommandSyntaxException {
+    public void testAddPlayerIpRequiredButMissing(GameTestHelper helper) {
         LogCapture.clear();
 
         boolean prev = ModConfigs.IP_REQUIRED;
         ModConfigs.IP_REQUIRED = true;
 
         MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
-        CommandSourceStack source = opSource(server);
 
-        server.getCommands().getDispatcher().execute("bypasslist add missingIp", source);
+        server.getCommands().performPrefixedCommand(
+                opSource(server),
+                "bypasslist add missingIp"
+        );
 
         List<String> ips = BypassListUtil.getIpsForPlayer("missingIp");
         helper.assertTrue(ips.isEmpty(), "No entry should be added");
@@ -160,13 +159,15 @@ public class BypassListAddCommandTest {
     }
 
     @GameTest
-    public void testAddPlayerButNoOp(GameTestHelper helper) throws CommandSyntaxException {
+    public void testAddPlayerButNoOp(GameTestHelper helper) {
         LogCapture.clear();
 
         MinecraftServer server = Objects.requireNonNull(helper.getLevel().getServer());
-        CommandSourceStack source = noPermSource(server);
 
-        server.getCommands().getDispatcher().execute("bypasslist add notOp 1.2.3.4", source);
+        server.getCommands().performPrefixedCommand(
+                noPermSource(server),
+                "bypasslist add notOp 1.2.3.4"
+        );
 
         List<String> ips = BypassListUtil.getIpsForPlayer("notOp");
         helper.assertTrue(ips.isEmpty(), "Non-OP cannot add");

@@ -38,12 +38,9 @@ public class InvalidPlayerBypassList implements ModInitializer {
         bypassList = ModConfigs.ENFORCE_BYPASSLIST;
     }
 
-    private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+    public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("bypasslist")
-                .requires(source -> Objects.requireNonNull(source.getPlayer())
-                        .permissions()
-                        .hasPermission(Permissions.COMMANDS_ADMIN))
-
+                .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_ADMIN))
                 .then(literal("add")
                         .then(argument("player", StringArgumentType.word())
                                 .executes(ctx -> {
@@ -55,7 +52,7 @@ public class InvalidPlayerBypassList implements ModInitializer {
                                     boolean added = BypassListUtil.addPlayer(player, "none");
                                     if (added) {
                                         ctx.getSource().sendSuccess(() -> Component.literal("Added " + player + " to the bypass list."), false);
-                                        LOGGER.info("[{}: Added {} with no IP to the bypasslist]", ctx.getSource().getDisplayName(), player);
+                                        LOGGER.info("[{}: Added {} with no IP to the bypasslist]", ctx.getSource().getDisplayName().getString(), player);
                                     } else {
                                         ctx.getSource().sendFailure(Component.literal(player + " with IP none is already on the bypass list.").withColor(0xFF5555));
                                     }
@@ -68,7 +65,7 @@ public class InvalidPlayerBypassList implements ModInitializer {
                                             boolean added = BypassListUtil.addPlayer(player, ip);
                                             if (added) {
                                                 ctx.getSource().sendSuccess(() -> Component.literal("Added " + player + " with IP " + ip + " to the bypass list."), false);
-                                                LOGGER.info("[{}: Added {} with IP {} to the bypasslist]", ctx.getSource().getDisplayName(), player, ip);
+                                                LOGGER.info("[{}: Added {} with IP {} to the bypasslist]", ctx.getSource().getDisplayName().getString(), player, ip);
                                             } else {
                                                 ctx.getSource().sendFailure(Component.literal(player + " with IP " + ip + " is already on the bypass list.").withColor(0xFF5555));
                                             }
@@ -92,7 +89,7 @@ public class InvalidPlayerBypassList implements ModInitializer {
                                     boolean removed = BypassListUtil.removePlayer(player);
                                     if (removed) {
                                         ctx.getSource().sendSuccess(() -> Component.literal("Removed all entries for " + player + " from the bypass list."), false);
-                                        LOGGER.info("[{}: Removed all entries for {} from the bypasslist]", ctx.getSource().getDisplayName(), player);
+                                        LOGGER.info("[{}: Removed all entries for {} from the bypasslist]", ctx.getSource().getDisplayName().getString(), player);
 
                                     } else {
                                         ctx.getSource().sendFailure(Component.literal(player + " not found in the bypass list."));
@@ -115,7 +112,7 @@ public class InvalidPlayerBypassList implements ModInitializer {
                                             boolean removed = BypassListUtil.removePlayer(player, ip);
                                             if (removed) {
                                                 ctx.getSource().sendSuccess(() -> Component.literal("Removed " + player + " with IP " + ip + " from the bypass list."), false);
-                                                LOGGER.info("[{}: Removed {} with IP {} from the bypasslist]", ctx.getSource().getDisplayName(), player, ip);
+                                                LOGGER.info("[{}: Removed {} with IP {} from the bypasslist]", ctx.getSource().getDisplayName().getString(), player, ip);
                                             } else {
                                                 ctx.getSource().sendFailure(Component.literal(player + " with IP " + ip + " not found in the bypass list."));
                                             }
@@ -155,7 +152,7 @@ public class InvalidPlayerBypassList implements ModInitializer {
                             bypassList = true;
                             ctx.getSource().sendSuccess(() ->
                                     Component.literal("Invalid player bypass list enabled."), false);
-                            LOGGER.info("[{}: Bypasslist is now turned on]", ctx.getSource().getDisplayName());
+                            LOGGER.info("[{}: Bypasslist is now turned on]", ctx.getSource().getDisplayName().getString());
                             return 1;
                         })
                 )
@@ -168,7 +165,7 @@ public class InvalidPlayerBypassList implements ModInitializer {
                             }
                             bypassList = false;
                             ctx.getSource().sendSuccess(() -> Component.literal("Invalid player bypass list disabled."), false);
-                            LOGGER.info("[{}: Bypasslist is now turned off]", ctx.getSource().getDisplayName());
+                            LOGGER.info("[{}: Bypasslist is now turned off]", ctx.getSource().getDisplayName().getString());
                             return 1;
                         })
                 )
