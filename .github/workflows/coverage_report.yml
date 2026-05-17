@@ -10,7 +10,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      page_name: ${{ steps.meta.outputs.page_name }}
+      folder_name: ${{ steps.meta.outputs.folder_name }}
+      wiki_page: ${{ steps.meta.outputs.wiki_page }}
+      wiki_title: ${{ steps.meta.outputs.wiki_title }}
       branch: ${{ steps.meta.outputs.branch }}
       commit: ${{ steps.meta.outputs.commit }}
       timestamp: ${{ steps.meta.outputs.timestamp }}
@@ -43,19 +45,42 @@ jobs:
       - name: Extract metadata
         id: meta
         run: |
-          echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
-          echo "commit=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "date=$(date -u +"%Y-%m-%d")" >> $GITHUB_OUTPUT
-          echo "timestamp=$(date -u +"%Y-%m-%d %H:%M UTC")" >> $GITHUB_OUTPUT
-          echo "java=$(java -version 2>&1 | head -n 1)" >> $GITHUB_OUTPUT
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          COMMIT=$(git rev-parse --short HEAD)
+          DATE=$(date -u +"%Y-%m-%d")
+          DATE_DOTS=$(date -u +"%Y.%m.%d")
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          JAVA=$(java -version 2>&1 | head -n 1)
           MC_VERSION=$(grep '^works_for_version' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+
+          # Folder name for GitHub Pages
+          FOLDER_NAME="${MC_VERSION}-${DATE_DOTS}"
+
+          # Wiki page filename
+          WIKI_PAGE="JaCoCo-report-Mc-version-${MC_VERSION}-${DATE_DOTS}"
+
+          # Wiki page title
+          WIKI_TITLE="JaCoCo report Mc version ${MC_VERSION} - ${DATE_DOTS}"
+
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "commit=$COMMIT" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "java=$JAVA" >> $GITHUB_OUTPUT
           echo "mc_version=$MC_VERSION" >> $GITHUB_OUTPUT
-          echo "page_name=JaCoCo-report-Mc-version-${MC_VERSION}-$(date -u +"%Y-%m-%d")" >> $GITHUB_OUTPUT
+          echo "folder_name=$FOLDER_NAME" >> $GITHUB_OUTPUT
+          echo "wiki_page=$WIKI_PAGE" >> $GITHUB_OUTPUT
+          echo "wiki_title=$WIKI_TITLE" >> $GITHUB_OUTPUT
+
+      - name: Prepare artifact folder structure
+        run: |
+          mkdir -p "deploy/${{ steps.meta.outputs.folder_name }}"
+          cp -r build/reports/jacocoCombinedHtml/* "deploy/${{ steps.meta.outputs.folder_name }}/"
 
       - name: Upload JaCoCo HTML artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/reports/jacocoCombinedHtml
+          path: deploy
 
   deploy:
     needs: build
@@ -80,42 +105,9 @@ jobs:
 
       - name: Create wiki page linking to GitHub Pages report
         run: |
-          PAGE_NAME="${{ needs.build.outputs.page_name }}"
+          PAGE="${{ needs.build.outputs.wiki_page }}"
+          TITLE="${{ needs.build.outputs.wiki_title }}"
           BRANCH="${{ needs.build.outputs.branch }}"
           COMMIT="${{ needs.build.outputs.commit }}"
           TIMESTAMP="${{ needs.build.outputs.timestamp }}"
           JAVA="${{ needs.build.outputs.java }}"
-          MC_VERSION="${{ needs.build.outputs.mc_version }}"
-
-          REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/index.html"
-
-          cat > "wiki/${PAGE_NAME}.md" <<EOF
-          # JaCoCo Coverage Report
-          
-          **Branch:** ${BRANCH}  
-          **Commit:** ${COMMIT}  
-          **Tested at:** ${TIMESTAMP}  
-          **Java:** ${JAVA}  
-          **Minecraft:** ${MC_VERSION}
-          
-          ---
-          
-          ## Full HTML Report (GitHub Pages)
-          
-          [Open JaCoCo HTML Report](${REPORT_URL})
-          
-          EOF
-
-      - name: Commit & push wiki changes
-        run: |
-          PAGE_NAME="${{ needs.build.outputs.page_name }}"
-
-          cd wiki
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-          git add "${PAGE_NAME}.md"
-          git diff --cached --quiet && echo "No changes to commit" && exit 0
-
-          git commit -m "Coverage report: Mc ${{ needs.build.outputs.mc_version }} @ ${{ needs.build.outputs.timestamp }}"
-          git push
