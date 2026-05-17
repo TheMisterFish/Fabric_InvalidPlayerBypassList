@@ -42,11 +42,11 @@ jobs:
           # Derive the wiki page filename from mc version + date
           echo "page_name=JaCoCo-report-Mc-version-${MC_VERSION}-$(date -u +"%Y-%m-%d")" >> $GITHUB_OUTPUT
 
-      - name: Convert JaCoCo HTML → Markdown summary
+      - name: Convert JaCoCo XML → Markdown summary
         id: jacoco
         uses: PavanMudigonda/jacoco-reporter@v5.0
         with:
-          coverage_results_path: build/reports/jacocoCombinedHtml/jacoco.xml
+          coverage_results_path: build/reports/jacoco/jacocoCombinedReport/jacocoCombinedReport.xml
           coverage_report_title: "Combined Coverage Report"
           skip_check_run: true
           minimum_coverage: 0
