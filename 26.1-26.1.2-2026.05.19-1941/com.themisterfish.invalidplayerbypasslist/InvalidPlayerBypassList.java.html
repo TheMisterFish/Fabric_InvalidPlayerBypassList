@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InvalidPlayerBypassList.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fabric_InvalidPlayerBypassList</a> &gt; <a href="index.source.html" class="el_package">com.themisterfish.invalidplayerbypasslist</a> &gt; <span class="el_source">InvalidPlayerBypassList.java</span></div><h1>InvalidPlayerBypassList.java</h1><pre class="source lang-java linenums">package com.themisterfish.invalidplayerbypasslist;
+
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.themisterfish.invalidplayerbypasslist.config.ModConfigs;
+import com.themisterfish.invalidplayerbypasslist.util.BypassListUtil;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.permissions.Permissions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
+
+<span class="fc" id="L20">public class InvalidPlayerBypassList implements ModInitializer {</span>
+    public static final String MOD_ID = &quot;invalidPlayerBypassList&quot;;
+<span class="fc" id="L22">    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);</span>
+
+<span class="fc" id="L24">    public static boolean bypassList = true;</span>
+
+    @Override
+    public void onInitialize() {
+<span class="fc" id="L28">        ModConfigs.registerConfigs();</span>
+
+<span class="fc" id="L30">        LOGGER.info(&quot;InvalidPlayerBypassList initialized.&quot;);</span>
+
+<span class="fc" id="L32">        CommandRegistrationCallback.EVENT.register((dispatcher, commandRegistryAccess, dedicated) -&gt; {</span>
+<span class="fc" id="L33">            registerCommands(dispatcher);</span>
+<span class="fc" id="L34">        });</span>
+
+<span class="fc" id="L36">        bypassList = ModConfigs.ENFORCE_BYPASSLIST;</span>
+<span class="fc" id="L37">    }</span>
+
+    private void registerCommands(CommandDispatcher&lt;CommandSourceStack&gt; dispatcher) {
+<span class="fc" id="L40">        dispatcher.register(literal(&quot;bypasslist&quot;)</span>
+<span class="fc" id="L41">                .requires(source -&gt; source.permissions().hasPermission(Permissions.COMMANDS_ADMIN))</span>
+<span class="fc" id="L42">                .then(literal(&quot;add&quot;)</span>
+<span class="fc" id="L43">                        .then(argument(&quot;player&quot;, StringArgumentType.word())</span>
+<span class="fc" id="L44">                                .executes(ctx -&gt; {</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">                                    if (ModConfigs.IP_REQUIRED) {</span>
+<span class="fc" id="L46">                                        ctx.getSource().sendFailure(Component.literal(&quot;IP is required, please provide one.&quot;));</span>
+<span class="fc" id="L47">                                        return 0;</span>
+                                    }
+<span class="fc" id="L49">                                    String player = StringArgumentType.getString(ctx, &quot;player&quot;);</span>
+<span class="fc" id="L50">                                    boolean added = BypassListUtil.addPlayer(player, &quot;none&quot;);</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">                                    if (added) {</span>
+<span class="fc" id="L52">                                        ctx.getSource().sendSuccess(() -&gt; Component.literal(&quot;Added &quot; + player + &quot; to the bypass list.&quot;), false);</span>
+<span class="fc" id="L53">                                        LOGGER.info(&quot;[{}: Added {} with no IP to the bypasslist]&quot;, ctx.getSource().getDisplayName().getString(), player);</span>
+                                    } else {
+<span class="fc" id="L55">                                        ctx.getSource().sendFailure(Component.literal(player + &quot; with IP none is already on the bypass list.&quot;).withColor(0xFF5555));</span>
+                                    }
+<span class="fc" id="L57">                                    return 1;</span>
+                                })
+<span class="fc" id="L59">                                .then(argument(&quot;ip&quot;, StringArgumentType.word())</span>
+<span class="fc" id="L60">                                        .executes(ctx -&gt; {</span>
+<span class="fc" id="L61">                                            String player = StringArgumentType.getString(ctx, &quot;player&quot;);</span>
+<span class="fc" id="L62">                                            String ip = StringArgumentType.getString(ctx, &quot;ip&quot;);</span>
+<span class="fc" id="L63">                                            boolean added = BypassListUtil.addPlayer(player, ip);</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">                                            if (added) {</span>
+<span class="fc" id="L65">                                                ctx.getSource().sendSuccess(() -&gt; Component.literal(&quot;Added &quot; + player + &quot; with IP &quot; + ip + &quot; to the bypass list.&quot;), false);</span>
+<span class="fc" id="L66">                                                LOGGER.info(&quot;[{}: Added {} with IP {} to the bypasslist]&quot;, ctx.getSource().getDisplayName().getString(), player, ip);</span>
+                                            } else {
+<span class="fc" id="L68">                                                ctx.getSource().sendFailure(Component.literal(player + &quot; with IP &quot; + ip + &quot; is already on the bypass list.&quot;).withColor(0xFF5555));</span>
+                                            }
+<span class="fc" id="L70">                                            return 1;</span>
+                                        })
+                                )
+                        )
+                )
+
+<span class="fc" id="L76">                .then(literal(&quot;remove&quot;)</span>
+<span class="fc" id="L77">                        .then(argument(&quot;player&quot;, StringArgumentType.word())</span>
+<span class="fc" id="L78">                                .suggests((ctx, builder) -&gt; {</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">                                    for (String player : BypassListUtil.getAllPlayers()) {</span>
+<span class="fc" id="L80">                                        builder.suggest(player);</span>
+<span class="fc" id="L81">                                    }</span>
+<span class="fc" id="L82">                                    return builder.buildFuture();</span>
+                                })
+
+<span class="fc" id="L85">                                .executes(ctx -&gt; {</span>
+<span class="fc" id="L86">                                    String player = StringArgumentType.getString(ctx, &quot;player&quot;);</span>
+<span class="fc" id="L87">                                    boolean removed = BypassListUtil.removePlayer(player);</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">                                    if (removed) {</span>
+<span class="fc" id="L89">                                        ctx.getSource().sendSuccess(() -&gt; Component.literal(&quot;Removed all entries for &quot; + player + &quot; from the bypass list.&quot;), false);</span>
+<span class="fc" id="L90">                                        LOGGER.info(&quot;[{}: Removed all entries for {} from the bypasslist]&quot;, ctx.getSource().getDisplayName().getString(), player);</span>
+
+                                    } else {
+<span class="fc" id="L93">                                        ctx.getSource().sendFailure(Component.literal(player + &quot; not found in the bypass list.&quot;));</span>
+                                    }
+<span class="fc" id="L95">                                    return 1;</span>
+                                })
+
+<span class="fc" id="L98">                                .then(argument(&quot;ip&quot;, StringArgumentType.word())</span>
+<span class="fc" id="L99">                                        .suggests((ctx, builder) -&gt; {</span>
+<span class="fc" id="L100">                                            String player = StringArgumentType.getString(ctx, &quot;player&quot;);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">                                            for (String ip : BypassListUtil.getIpsForPlayer(player)) {</span>
+<span class="fc" id="L102">                                                builder.suggest(ip);</span>
+<span class="fc" id="L103">                                            }</span>
+<span class="fc" id="L104">                                            return builder.buildFuture();</span>
+                                        })
+
+<span class="fc" id="L107">                                        .executes(ctx -&gt; {</span>
+<span class="fc" id="L108">                                            String player = StringArgumentType.getString(ctx, &quot;player&quot;);</span>
+<span class="fc" id="L109">                                            String ip = StringArgumentType.getString(ctx, &quot;ip&quot;);</span>
+<span class="fc" id="L110">                                            boolean removed = BypassListUtil.removePlayer(player, ip);</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">                                            if (removed) {</span>
+<span class="fc" id="L112">                                                ctx.getSource().sendSuccess(() -&gt; Component.literal(&quot;Removed &quot; + player + &quot; with IP &quot; + ip + &quot; from the bypass list.&quot;), false);</span>
+<span class="fc" id="L113">                                                LOGGER.info(&quot;[{}: Removed {} with IP {} from the bypasslist]&quot;, ctx.getSource().getDisplayName().getString(), player, ip);</span>
+                                            } else {
+<span class="fc" id="L115">                                                ctx.getSource().sendFailure(Component.literal(player + &quot; with IP &quot; + ip + &quot; not found in the bypass list.&quot;));</span>
+                                            }
+<span class="fc" id="L117">                                            return 1;</span>
+                                        })
+                                )
+                        )
+                )
+
+<span class="fc" id="L123">                .then(literal(&quot;list&quot;)</span>
+<span class="fc" id="L124">                        .executes(ctx -&gt; {</span>
+<span class="fc" id="L125">                            List&lt;String&gt; players = BypassListUtil.getAllPlayers();</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">                            if (players.isEmpty()) {</span>
+<span class="fc" id="L127">                                ctx.getSource().sendSuccess(() -&gt; Component.literal(&quot;The bypass list is empty.&quot;), false);</span>
+                            } else {
+<span class="fc" id="L129">                                StringBuilder list = new StringBuilder(&quot;Bypass list entries:\n&quot;);</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">                                for (String player : players) {</span>
+<span class="fc" id="L131">                                    List&lt;String&gt; ips = BypassListUtil.getIpsForPlayer(player);</span>
+<span class="fc" id="L132">                                    list.append(&quot;- &quot;).append(player);</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">                                    if (!ips.isEmpty()) {</span>
+<span class="fc" id="L134">                                        list.append(&quot; (&quot;).append(String.join(&quot;, &quot;, ips)).append(&quot;)&quot;);</span>
+                                    }
+<span class="fc" id="L136">                                    list.append(&quot;\n&quot;);</span>
+<span class="fc" id="L137">                                }</span>
+<span class="fc" id="L138">                                ctx.getSource().sendSuccess(() -&gt; Component.literal(list.toString()), false);</span>
+                            }
+<span class="fc" id="L140">                            return players.size();</span>
+                        })
+                )
+
+<span class="fc" id="L144">                .then(literal(&quot;on&quot;)</span>
+<span class="fc" id="L145">                        .executes(ctx -&gt; {</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">                            if (bypassList) {</span>
+<span class="fc" id="L147">                                ctx.getSource().sendFailure(Component.literal(&quot;Bypass list is already enabled.&quot;).withColor(0xFF5555));</span>
+<span class="fc" id="L148">                                return 0;</span>
+                            }
+<span class="fc" id="L150">                            bypassList = true;</span>
+<span class="fc" id="L151">                            ctx.getSource().sendSuccess(() -&gt;</span>
+<span class="fc" id="L152">                                    Component.literal(&quot;Invalid player bypass list enabled.&quot;), false);</span>
+<span class="fc" id="L153">                            LOGGER.info(&quot;[{}: Bypasslist is now turned on]&quot;, ctx.getSource().getDisplayName().getString());</span>
+<span class="fc" id="L154">                            return 1;</span>
+                        })
+                )
+
+<span class="fc" id="L158">                .then(literal(&quot;off&quot;)</span>
+<span class="fc" id="L159">                        .executes(ctx -&gt; {</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">                            if (!bypassList) {</span>
+<span class="fc" id="L161">                                ctx.getSource().sendFailure(Component.literal(&quot;Bypass list is already disabled.&quot;).withColor(0xFF5555));</span>
+<span class="fc" id="L162">                                return 0;</span>
+                            }
+<span class="fc" id="L164">                            bypassList = false;</span>
+<span class="fc" id="L165">                            ctx.getSource().sendSuccess(() -&gt; Component.literal(&quot;Invalid player bypass list disabled.&quot;), false);</span>
+<span class="fc" id="L166">                            LOGGER.info(&quot;[{}: Bypasslist is now turned off]&quot;, ctx.getSource().getDisplayName().getString());</span>
+<span class="fc" id="L167">                            return 1;</span>
+                        })
+                )
+        );
+<span class="fc" id="L171">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

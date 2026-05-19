@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ModConfigs.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fabric_InvalidPlayerBypassList</a> &gt; <a href="index.source.html" class="el_package">com.themisterfish.invalidplayerbypasslist.config</a> &gt; <span class="el_source">ModConfigs.java</span></div><h1>ModConfigs.java</h1><pre class="source lang-java linenums">package com.themisterfish.invalidplayerbypasslist.config;
+
+import com.mojang.datafixers.util.Pair;
+
+import static com.themisterfish.invalidplayerbypasslist.InvalidPlayerBypassList.MOD_ID;
+
+<span class="nc" id="L7">public class ModConfigs {</span>
+    public static SimpleConfig CONFIG;
+    private static ModConfigProvider configs;
+
+    public static boolean IP_REQUIRED;
+    public static boolean ENFORCE_BYPASSLIST;
+
+    public static void registerConfigs() {
+<span class="fc" id="L15">        configs = new ModConfigProvider();</span>
+<span class="fc" id="L16">        createConfigs();</span>
+
+<span class="fc" id="L18">        CONFIG = SimpleConfig.of(MOD_ID).provider(configs).request();</span>
+
+<span class="fc" id="L20">        assignConfigs();</span>
+<span class="fc" id="L21">    }</span>
+
+    private static void createConfigs() {
+<span class="fc" id="L24">        configs.addKeyValuePair(new Pair&lt;&gt;(&quot;ip-required&quot;, true), &quot;If IP is required when adding a player to the invalid player bypass list.&quot;);</span>
+<span class="fc" id="L25">        configs.addKeyValuePair(new Pair&lt;&gt;(&quot;enforce-bypasslist&quot;, true), &quot;Enforce the invalid player bypass list.&quot;);</span>
+
+<span class="fc" id="L27">    }</span>
+
+    private static void assignConfigs() {
+<span class="fc" id="L30">        IP_REQUIRED = CONFIG.getOrDefault(&quot;ip-required&quot;, true);</span>
+<span class="fc" id="L31">        ENFORCE_BYPASSLIST = CONFIG.getOrDefault(&quot;enforce-bypasslist&quot;, true);</span>
+<span class="fc" id="L32">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

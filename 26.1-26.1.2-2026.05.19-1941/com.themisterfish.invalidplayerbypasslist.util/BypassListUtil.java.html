@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BypassListUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fabric_InvalidPlayerBypassList</a> &gt; <a href="index.source.html" class="el_package">com.themisterfish.invalidplayerbypasslist.util</a> &gt; <span class="el_source">BypassListUtil.java</span></div><h1>BypassListUtil.java</h1><pre class="source lang-java linenums">package com.themisterfish.invalidplayerbypasslist.util;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.themisterfish.invalidplayerbypasslist.config.ModConfigs;
+
+import java.io.*;
+import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+import static com.themisterfish.invalidplayerbypasslist.InvalidPlayerBypassList.LOGGER;
+
+<span class="nc" id="L20">public class BypassListUtil {</span>
+<span class="fc" id="L21">    private static final Path FILE_PATH = Path.of(&quot;invalidbypasslist.json&quot;);</span>
+<span class="fc" id="L22">    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();</span>
+<span class="fc" id="L23">    private static List&lt;PlayerEntry&gt; bypasslistCache = null;</span>
+
+    private static class PlayerEntry {
+        String player;
+        String ip;
+
+<span class="fc" id="L29">        PlayerEntry(String player, String ip) {</span>
+<span class="fc" id="L30">            this.player = player.toLowerCase(Locale.ROOT);</span>
+<span class="fc" id="L31">            this.ip = ip.toLowerCase(Locale.ROOT);</span>
+<span class="fc" id="L32">        }</span>
+    }
+
+    private static List&lt;PlayerEntry&gt; loadBypasslist() {
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (bypasslistCache != null) return bypasslistCache;</span>
+
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        if (Files.notExists(FILE_PATH)) {</span>
+<span class="fc" id="L39">            bypasslistCache = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L40">            return bypasslistCache;</span>
+        }
+
+<span class="nc" id="L43">        try (Reader reader = new FileReader(FILE_PATH.toFile())) {</span>
+<span class="nc" id="L44">            Type listType = new TypeToken&lt;List&lt;PlayerEntry&gt;&gt;() {</span>
+<span class="nc" id="L45">            }.getType();</span>
+<span class="nc" id="L46">            bypasslistCache = GSON.fromJson(reader, listType);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">            if (bypasslistCache == null) {</span>
+<span class="nc" id="L48">                bypasslistCache = new ArrayList&lt;&gt;();</span>
+            }
+<span class="nc" id="L50">            return bypasslistCache;</span>
+<span class="nc" id="L51">        } catch (IOException e) {</span>
+<span class="nc" id="L52">            LOGGER.error(e.getMessage());</span>
+<span class="nc" id="L53">            bypasslistCache = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L54">            return bypasslistCache;</span>
+        }
+    }
+
+    private static void saveBypasslist() {
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (bypasslistCache == null) return;</span>
+
+<span class="fc" id="L61">        try (Writer writer = new FileWriter(FILE_PATH.toFile())) {</span>
+<span class="fc" id="L62">            GSON.toJson(bypasslistCache, writer);</span>
+<span class="nc" id="L63">        } catch (IOException e) {</span>
+<span class="nc" id="L64">            LOGGER.error(e.getMessage());</span>
+<span class="fc" id="L65">        }</span>
+<span class="fc" id="L66">    }</span>
+
+    /**
+     * Checks if a player is in the bypass list.
+     * Returns true if the player is found.
+     */
+    public static boolean isInBypassList(String playername, String ip) {
+<span class="fc" id="L73">        List&lt;String&gt; ipsForPlayer = getIpsForPlayer(playername);</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (ipsForPlayer.isEmpty()) return false;</span>
+
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (ModConfigs.IP_REQUIRED) {</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            if (ip.equalsIgnoreCase(&quot;none&quot;)) return false;</span>
+<span class="fc" id="L78">            return ipsForPlayer.stream().anyMatch(stored -&gt; stored.equalsIgnoreCase(ip));</span>
+        } else {
+<span class="nc" id="L80">            boolean hasNone = ipsForPlayer.stream().anyMatch(stored -&gt; stored.equalsIgnoreCase(&quot;none&quot;));</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (hasNone) return true;</span>
+<span class="nc" id="L82">            return ipsForPlayer.stream().anyMatch(stored -&gt; stored.equalsIgnoreCase(ip));</span>
+        }
+    }
+
+    /**
+     * Adds a player + ip entry. If ip is null, stores as &quot;none&quot;.
+     * Returns true if added, false if duplicate player+ip found.
+     */
+    public static boolean addPlayer(String player, String ip) {
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (ip == null) ip = &quot;none&quot;;</span>
+
+<span class="fc" id="L93">        List&lt;PlayerEntry&gt; bypasslist = loadBypasslist();</span>
+
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        for (PlayerEntry entry : bypasslist) {</span>
+<span class="fc bfc" id="L96" title="All 4 branches covered.">            if (entry.player.equalsIgnoreCase(player) &amp;&amp; entry.ip.equalsIgnoreCase(ip)) {</span>
+<span class="fc" id="L97">                return false;</span>
+            }
+<span class="fc" id="L99">        }</span>
+
+<span class="fc" id="L101">        bypasslist.add(new PlayerEntry(player, ip));</span>
+<span class="fc" id="L102">        saveBypasslist();</span>
+<span class="fc" id="L103">        return true;</span>
+    }
+
+    /**
+     * Remove entries by player name only (all IPs for that player)
+     * Returns true if at least one was removed.
+     */
+    public static boolean removePlayer(String player) {
+<span class="fc" id="L111">        List&lt;PlayerEntry&gt; bypasslist = loadBypasslist();</span>
+
+<span class="fc" id="L113">        boolean removedAny = bypasslist.removeIf(entry -&gt; entry.player.equalsIgnoreCase(player));</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        if (removedAny) saveBypasslist();</span>
+<span class="fc" id="L115">        return removedAny;</span>
+    }
+
+    /**
+     * Remove by player name AND ip (ip can be &quot;none&quot;)
+     * Returns true if found and removed, false otherwise.
+     */
+    public static boolean removePlayer(String player, String ip) {
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">        if (ip == null) ip = &quot;none&quot;;</span>
+
+<span class="fc" id="L125">        List&lt;PlayerEntry&gt; bypasslist = loadBypasslist();</span>
+
+<span class="fc" id="L127">        Iterator&lt;PlayerEntry&gt; iter = bypasslist.iterator();</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        while (iter.hasNext()) {</span>
+<span class="fc" id="L129">            PlayerEntry entry = iter.next();</span>
+<span class="pc bpc" id="L130" title="2 of 4 branches missed.">            if (entry.player.equalsIgnoreCase(player) &amp;&amp; entry.ip.equalsIgnoreCase(ip)) {</span>
+<span class="fc" id="L131">                iter.remove();</span>
+<span class="fc" id="L132">                saveBypasslist();</span>
+<span class="fc" id="L133">                return true;</span>
+            }
+<span class="nc" id="L135">        }</span>
+<span class="fc" id="L136">        return false;</span>
+    }
+
+    /**
+     * Returns a list of all unique player names currently in the bypasslist.
+     */
+    public static List&lt;String&gt; getAllPlayers() {
+<span class="fc" id="L143">        List&lt;PlayerEntry&gt; bypasslist = loadBypasslist();</span>
+
+<span class="fc" id="L145">        return bypasslist.stream()</span>
+<span class="fc" id="L146">                .map(entry -&gt; entry.player)</span>
+<span class="fc" id="L147">                .distinct()</span>
+<span class="fc" id="L148">                .sorted()</span>
+<span class="fc" id="L149">                .collect(Collectors.toList());</span>
+    }
+
+    /**
+     * Returns all IPs associated with the given player.
+     * IPs are unique and sorted.
+     */
+    public static List&lt;String&gt; getIpsForPlayer(String player) {
+<span class="fc" id="L157">        List&lt;PlayerEntry&gt; bypasslist = loadBypasslist();</span>
+
+<span class="fc" id="L159">        return bypasslist.stream()</span>
+<span class="fc" id="L160">                .filter(entry -&gt; entry.player.equalsIgnoreCase(player))</span>
+<span class="fc" id="L161">                .map(entry -&gt; entry.ip)</span>
+<span class="fc" id="L162">                .distinct()</span>
+<span class="fc" id="L163">                .sorted()</span>
+<span class="fc" id="L164">                .collect(Collectors.toList());</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
